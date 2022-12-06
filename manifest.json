@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "GPTx",
+  "version": "1.0",
+  "description": "A powerful tool that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless.",
+  "action": {
+    "default_icon": "img/icon19.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "16": "img/icon16.png",
+    "48": "img/icon48.png",
+    "128": "img/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.google.com/search?q=*"],
+      "css": ["css/result_card.css"],
+      "js": ["lib/jquery-3.6.1.min.js", "content-script.js"]
+    }
+  ]
+}
