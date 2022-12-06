@@ -15,19 +15,16 @@ With our extension, you can effortlessly access information, automate tasks, and
 3. Enable 'Developer mode' by clicking the toggle in the top right corner
 4. Click on 'Load unpacked' and select the downloaded repository folder
 5. The extension should now be installed and can be accessed through the extensions icon in the top right corner of the browser
-<br>
 
 ### Usage
 
 1. Click on the extension icon in the top right corner of the browser
 2. Customize your settings by selecting the desired options and inputting any necessary information
 3. The extension will now be active and will automatically perform the chosen functions while browsing
-<br>
 
 ### Features
 
 - Display search result responses from OpenAI
-<br>
 
 ### Product Roadmap
 
@@ -39,19 +36,16 @@ With our extension, you can effortlessly access information, automate tasks, and
 - [ ] In the content script file, create a function to retrieve the OpenAI results from the page and display them on the same page.
 - [ ] Test the plugin by navigating to the OpenAI results page and verifying that the results are displayed correctly.
 - [ ] Package the plugin and submit it to the Chrome Web Store for distribution.
-<br>
 
 ### Resources
 
 - Extension Basics 101 (https://developer.chrome.com/docs/extensions/mv3/getstarted/extensions-101/)
 - Development Basics (https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/)
 - Create and publish custom Chrome apps & extensions - Chrome Enterprise and Education Help (https://support.google.com/chrome/a/answer/2714278?hl=en)
-<br>
 
 ### Contributions
 
 We welcome any contributions to this project. If you have any suggestions or improvements, please submit a pull request.
-<br>
 
 ### About US
 
