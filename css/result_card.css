@@ -1,34 +1,34 @@
 .card {
   width: 70%;
   max-height: 10%;
-  border: 1px solid #dadce0;
+  border: 0.2px solid #373b3e;
   border-radius: 10px;
-  border-width: "0.5px";
+  border-width: "0.2px";
   padding: 10px;
   font-size: 16px;
   overflow-y: auto;
   margin-bottom: 30px;
 }
 #loadingPara {
+  text-align: right;
   width: 100%;
   display: inline;
   margin-bottom: 0px;
   color: #70757a;
   font-size: 12px;
   font-weight: 700;
-  text-align: end;
 }
 #timePara {
+  text-align: right;
   font-size: 12px;
   color: #828282;
   margin-top: 1px;
   margin-left: 3px;
-  text-align: end;
 }
 #response {
   width: 100%;
   overflow-wrap: break-word;
   white-space: pre-wrap;
   font-size: 14px;
-  margin-top: -20px;
+  margin-top: -18px;
 }

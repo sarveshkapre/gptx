@@ -47,6 +47,9 @@ newNode.style["max-width"] = max_width;
 parentNode.insertBefore(newNode, referenceNode);
 
 let time1, time2;
+
+// TODO: If previous response is showing error. Do not save. 
+// TODO: Ability to refresh to seek new responses based on the user request
 if (previous_text === search_text) {
   time1 = performance.now();
   loadingPara.innerHTML = "OpenAI powered results";
@@ -56,7 +59,7 @@ if (previous_text === search_text) {
   time2 = performance.now();
   timePara.innerHTML = "(" + ((time2 - time1) / 1000).toFixed(2) + " seconds)";
 } else {
-  API_KEY = "YOUR_API_KEY";
+  API_KEY = "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";
   time1 = performance.now();
   // Set up the request body with the query text
   const requestBody = {

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GPTx",
   "version": "1.0",
-  "description": "A powerful tool that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless.",
+  "description": "OpenAI-powered Chrome Extension, Elevates Browsing Experience and Productivity.",
   "action": {
     "default_icon": "img/icon19.png",
     "default_popup": "popup.html"
@@ -20,7 +20,7 @@
     {
       "matches": ["https://www.google.com/search?q=*"],
       "css": ["css/result_card.css"],
-      "js": ["lib/jquery-3.6.1.min.js", "content-script.js"]
+      "js": ["content-script.js"]
     }
   ]
 }
