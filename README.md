@@ -58,9 +58,3 @@ Thank you for visiting and we hope you find something that interests you. Happy 
 
 This project is licensed under the MIT License.
 <br>
-
-### Acknowledgements
-
--
--
-
