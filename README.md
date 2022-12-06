@@ -1,8 +1,8 @@
-# GPTX
+## GPTX
 --------------
 Introducing *GPTX* -  the OpenAI Chrome Extension - a powerful tool that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless. With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
 
-# Features
+## Features
 --------------
 Sign up or Sign in to OpenAI using Google account
 Once enabled - for every search display content on Google
@@ -14,7 +14,7 @@ Summarize research papers
 chrome extension that uses openAI to help you write faster on Notion
 
 
-# Product Roadmap
+## Product Roadmap
 --------------
 Install the necessary development tools for creating a chrome plugin, including the Chrome Extension Developer Tool and a code editor.
 Open the code editor and create a new project folder for the chrome plugin.
@@ -26,14 +26,14 @@ Test the plugin by navigating to the OpenAI results page and verifying that the 
 Package the plugin and submit it to the Chrome Web Store for distribution.
 
 
-# Resources
+## Resources
 --------------
 Extension Basics 101
 Development Basics
 Create and publish custom Chrome apps & extensions - Chrome Enterprise and Education Help 
 
 
-# Welcome
+## Welcome
 --------------
 Welcome to our Github page!
 
