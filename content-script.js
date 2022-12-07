@@ -59,7 +59,7 @@ if (previous_text === search_text) {
   time2 = performance.now();
   timePara.innerHTML = "(" + ((time2 - time1) / 1000).toFixed(2) + " seconds)";
 } else {
-  API_KEY = "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";
+  API_KEY = "YOUR_API_KEY";
   time1 = performance.now();
   // Set up the request body with the query text
   const requestBody = {
