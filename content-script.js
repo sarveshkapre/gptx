@@ -66,7 +66,8 @@ if (previous_text === search_text) {
     model: "text-davinci-003",
     prompt: search_text,
     max_tokens: 256,
-    temperature: 0.7,
+    temperature: 0.5,
+    top_p: 1.0
   };
 
   // Set up the request options
