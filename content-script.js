@@ -1,29 +1,29 @@
-const search_text = document.querySelector("input.gLFyf").value;
-main();
+const search_text = document.querySelector('input.gLFyf').value
+main()
 
 async function main() {
-  initializeResultCard();
-  const time1 = performance.now();
-  const cachedResult = fetchCachedQuestionResult(search_text);
+  initializeResultCard()
+  const time1 = performance.now()
+  const cachedResult = fetchCachedQuestionResult(search_text)
   if (cachedResult) {
-    updateContentDOM(cachedResult.result, {}, time1);
+    updateContentDOM(cachedResult.result, {}, time1)
     // question is already present remove from the cache and add at the end
-    addToLocalStorage(search_text, cachedResult.result);
+    addToLocalStorage(search_text, cachedResult.result)
   } else {
     // const response = fetchChatGPTResult(search_text);
-    const response = await fetchOpenAIResult(search_text);
+    const response = await fetchOpenAIResult(search_text)
     if (response.choices) {
-      addToLocalStorage(search_text, response.choices[0].text);
+      addToLocalStorage(search_text, response.choices[0].text)
     }
-    updateContentDOM("", response, time1);
+    updateContentDOM('', response, time1)
   }
 }
 
 function initializeResultCard() {
-  const parentNode = document.getElementById("cnt");
+  const parentNode = document.getElementById('cnt')
   const margin_left = window
-    .getComputedStyle(document.getElementById("center_col"), null)
-    .getPropertyValue("margin-left");
+    .getComputedStyle(document.getElementById('center_col'), null)
+    .getPropertyValue('margin-left')
 
   const resultCardContentTemplate = `
   <div id="gptxCardHeader">
@@ -33,43 +33,38 @@ function initializeResultCard() {
   <div id="gptxCardBody">
     <p id="gptxResponsePara"></p>
   </div>
-`;
+`
   /**
  * <div id="gptxCardFooter">
     <span><img height="20" width="20" id="gptxFooterRefreshIcon" /></span>
   </div>
  */
-  const newNode = document.createElement("div");
-  newNode.classList.add("gptxCard");
+  const newNode = document.createElement('div')
+  newNode.classList.add('gptxCard')
 
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     // add border color for dark mode
-    newNode.style.border = "0.2px solid #373b3e";
+    newNode.style.border = '0.2px solid #373b3e'
   } else {
     // add border color for light mode
-    newNode.style.border = "1px solid #dadce0";
+    newNode.style.border = '1px solid #dadce0'
   }
 
-  newNode.innerHTML = resultCardContentTemplate;
+  newNode.innerHTML = resultCardContentTemplate
 
   // Get a reference to the child node before which you want to insert the new node
-  const referenceNode = document.getElementById("rcnt");
-  const max_width = window
-    .getComputedStyle(referenceNode, null)
-    .getPropertyValue("max-width");
+  const referenceNode = document.getElementById('rcnt')
+  const max_width = window.getComputedStyle(referenceNode, null).getPropertyValue('max-width')
 
-  newNode.style["margin-left"] = margin_left;
-  newNode.style["max-width"] = max_width;
+  newNode.style['margin-left'] = margin_left
+  newNode.style['max-width'] = max_width
 
   // Insert the new node before the reference node
-  parentNode.insertBefore(newNode, referenceNode);
+  parentNode.insertBefore(newNode, referenceNode)
 }
 
 function getFromLocalStorage(key) {
-  return localStorage.getItem(key);
+  return localStorage.getItem(key)
 }
 
 // async function fetchAccessToken() {
@@ -93,47 +88,41 @@ function getFromLocalStorage(key) {
 // }
 
 function generateUUID() {
-  var dt = new Date().getTime();
-  var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-    /[xy]/g,
-    function (c) {
-      var r = (dt + Math.random() * 16) % 16 | 0;
-      dt = Math.floor(dt / 16);
-      return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
-    }
-  );
-  return uuid;
+  var dt = new Date().getTime()
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (dt + Math.random() * 16) % 16 | 0
+    dt = Math.floor(dt / 16)
+    return (c == 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+  return uuid
 }
 
 async function fetchOpenAIResult(question) {
-  const API_KEY = "ENTER_YOUR_KEY";
+  const API_KEY = 'ENTER_YOUR_KEY'
 
   // Set up the request body with the query text
   const requestBody = {
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: search_text,
     max_tokens: 256,
     temperature: 0.5,
     top_p: 1.0,
-  };
+  }
 
   // Set up the request options
   const requestOptions = {
-    method: "POST",
+    method: 'POST',
     body: JSON.stringify(requestBody),
     headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + API_KEY,
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + API_KEY,
     },
-  };
+  }
 
   // Use the fetch API to send the request to the OpenAI API
-  const response = await fetch(
-    "https://api.openai.com/v1/completions",
-    requestOptions
-  );
-  const respJSON = await response.json();
-  return respJSON;
+  const response = await fetch('https://api.openai.com/v1/completions', requestOptions)
+  const respJSON = await response.json()
+  return respJSON
 }
 
 // async function fetchChatGPTResult(question) {
@@ -184,70 +173,68 @@ async function fetchOpenAIResult(question) {
 //   }
 // }
 
-function updateContentDOM(resultText = "", apiResponse = {}, time1) {
-  gptxCardHeaderElem = document.getElementById("gptxCardHeader");
-  gptxLoadingParaElem = document.getElementById("gptxLoadingPara");
-  gptxTimeParaElem = document.getElementById("gptxTimePara");
-  gptxResponseParaElem = document.getElementById("gptxResponsePara");
-  gptxCardFooterElem = document.getElementById("gptxCardFooter");
+function updateContentDOM(resultText = '', apiResponse = {}, time1) {
+  gptxCardHeaderElem = document.getElementById('gptxCardHeader')
+  gptxLoadingParaElem = document.getElementById('gptxLoadingPara')
+  gptxTimeParaElem = document.getElementById('gptxTimePara')
+  gptxResponseParaElem = document.getElementById('gptxResponsePara')
+  gptxCardFooterElem = document.getElementById('gptxCardFooter')
   // gptxCardFooterElem.style.display = "block";
   // gptxFooterRefreshIconElem = document.getElementById("gptxFooterRefreshIcon");
   // const gptxRefreshIconURL = chrome.runtime.getURL("img/refresh.svg");
   // console.log(gptxFooterRefreshIconElem, gptxRefreshIconURL);
   // gptxFooterRefreshIconElem.src = "img/refresh.svg";
-  let time2;
+  let time2
   if (resultText) {
-    gptxLoadingParaElem.innerHTML = "OpenAI powered results";
-    gptxTimeParaElem.style.display = "inline";
-    gptxResponseParaElem.innerHTML = resultText;
-    gptxResponseParaElem.style["margin-bottom"] = "0px";
-    time2 = performance.now();
-    gptxTimeParaElem.innerHTML =
-      "(" + ((time2 - time1) / 1000).toFixed(2) + " seconds)";
-    gptxCardHeader.style.float = "right";
+    gptxLoadingParaElem.innerHTML = 'OpenAI powered results'
+    gptxTimeParaElem.style.display = 'inline'
+    gptxResponseParaElem.innerHTML = resultText
+    gptxResponseParaElem.style['margin-bottom'] = '0px'
+    time2 = performance.now()
+    gptxTimeParaElem.innerHTML = '(' + ((time2 - time1) / 1000).toFixed(2) + ' seconds)'
+    gptxCardHeader.style.float = 'right'
   } else {
     if (apiResponse.choices) {
-      gptxLoadingParaElem.innerHTML = "OpenAI powered results";
-      gptxTimeParaElem.style.display = "inline";
-      gptxResponseParaElem.innerHTML = apiResponse.choices[0].text;
-      time2 = performance.now();
-      gptxTimeParaElem.innerHTML =
-        "(" + ((time2 - time1) / 1000).toFixed(2) + " seconds)";
+      gptxLoadingParaElem.innerHTML = 'OpenAI powered results'
+      gptxTimeParaElem.style.display = 'inline'
+      gptxResponseParaElem.innerHTML = apiResponse.choices[0].text
+      time2 = performance.now()
+      gptxTimeParaElem.innerHTML = '(' + ((time2 - time1) / 1000).toFixed(2) + ' seconds)'
     } else if (apiResponse.error) {
-      gptxLoadingParaElem.style.display = "none";
-      gptxResponseParaElem.style["margin-top"] = "0px";
-      gptxResponseParaElem.innerHTML = apiResponse.error.message;
+      gptxLoadingParaElem.style.display = 'none'
+      gptxResponseParaElem.style['margin-top'] = '0px'
+      gptxResponseParaElem.innerHTML = apiResponse.error.message
     } else {
-      gptxLoadingParaElem.style.display = "none";
-      gptxResponseParaElem.style["margin-top"] = "0px";
-      gptxResponseParaElem.innerHTML = "Error fetching data";
+      gptxLoadingParaElem.style.display = 'none'
+      gptxResponseParaElem.style['margin-top'] = '0px'
+      gptxResponseParaElem.innerHTML = 'Error fetching data'
     }
-    gptxResponseParaElem.style["margin-bottom"] = "0px";
-    gptxCardHeader.style.float = "right";
+    gptxResponseParaElem.style['margin-bottom'] = '0px'
+    gptxCardHeader.style.float = 'right'
   }
 }
 
 function addToLocalStorage(question, result) {
-  let cache = JSON.parse(getFromLocalStorage("questionAnswers") || "[]");
+  let cache = JSON.parse(getFromLocalStorage('questionAnswers') || '[]')
   if (cache.some((obj) => obj.question === question)) {
     // question is already present remove from the cache and add at the end
     cache = cache.filter(function (obj) {
-      return obj.question !== question;
-    });
+      return obj.question !== question
+    })
   }
   if (cache.length >= 5) {
     // if it has, remove the oldest item from the cache
-    cache.shift();
+    cache.shift()
   }
   // add the new result to the cache
-  cache.push({ question: question, result: result });
-  localStorage.setItem("questionAnswers", JSON.stringify(cache));
+  cache.push({ question: question, result: result })
+  localStorage.setItem('questionAnswers', JSON.stringify(cache))
 }
 
 function fetchCachedQuestionResult(question) {
-  const cache = JSON.parse(getFromLocalStorage("questionAnswers"), "[]");
+  const cache = JSON.parse(getFromLocalStorage('questionAnswers'), '[]')
   if (cache) {
-    return cache.find((item) => item.question === question);
+    return cache.find((item) => item.question === question)
   }
-  return null;
+  return null
 }
