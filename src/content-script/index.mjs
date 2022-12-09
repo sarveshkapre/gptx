@@ -3,9 +3,8 @@ import {
   getCopyIconSvg,
   getNewTabIconSvg,
 } from '../constants/templateStrings.mjs'
-// import { storageCache } from './localStorage.mjs'
+import { storageCache } from './localStorage.mjs'
 import MarkdownIt from 'markdown-it'
-
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
 
@@ -93,15 +92,15 @@ async function run(question) {
         gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
         gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
         gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
-        // storageCache.setCache(question, previousResponse, 60 * 60)
-        // console.log('GPTX: question answer cached')
-        Browser.storage.local
-          .set({
-            [question]: previousResponse,
-          })
-          .then(() => {
-            console.log('GPTX: question answer cached')
-          })
+        storageCache.setCache(question, previousResponse, 60 * 60)
+        console.log('GPTX: question answer cached')
+        // Browser.storage.local
+        //   .set({
+        //     [question]: previousResponse,
+        //   })
+        //   .then(() => {
+        //     console.log('GPTX: question answer cached')
+        //   })
       } else {
         previousResponse = msg.answer
         gptxFooterCopyBtn.classList.add('gptxDisableBtn')
@@ -128,11 +127,11 @@ async function run(question) {
     gptxCardHeaderElem.style.float = 'right'
   })
 
-  let cachedQuestion = await Browser.storage.local.get(question)
-  // let cachedQuestion = storageCache.getCache(question)
-  if (Object.keys(cachedQuestion).length > 0) {
+  // let cachedQuestion = await Browser.storage.local.get(question)
+  let cachedQuestion = storageCache.getCache(question)
+  if (cachedQuestion) {
     console.log('GPTX: cached result used')
-    updateResultDOM(cachedQuestion[question], startTime)
+    updateResultDOM(cachedQuestion, startTime)
   } else {
     gptxFooterRefreshBtn.classList.add('gptxDisableBtn')
     gptxFooterCopyBtn.classList.add('gptxDisableBtn')
@@ -150,9 +149,9 @@ async function run(question) {
     port.postMessage({ question })
   })
   gptxFooterCopyBtn.addEventListener('click', async () => {
-    cachedQuestion = await Browser.storage.local.get(question)
-    // cachedQuestion = storageCache.getCache(question)
-    clipboard.write(cachedQuestion[question]).then(() => {
+    // cachedQuestion = await Browser.storage.local.get(question)
+    cachedQuestion = storageCache.getCache(question)
+    clipboard.write(cachedQuestion).then(() => {
       console.log('gptx result copied')
     })
   })
