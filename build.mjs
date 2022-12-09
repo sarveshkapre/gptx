@@ -12,6 +12,7 @@ async function runEsbuild() {
   await esbuild.build({
     entryPoints: [
       'src/newTab/index.mjs',
+      'src/popup/index.mjs',
       'src/content-script/index.mjs',
       'src/background/index.mjs',
     ],
@@ -47,7 +48,8 @@ async function build() {
     { src: 'build/content-script/index.js', dst: 'content-script.js' },
     { src: 'build/background/index.js', dst: 'background.js' },
     { src: 'build/newTab/index.js', dst: 'newTab.js' },
-    { src: 'src/popup/popup.html', dst: 'popup.html' },
+    { src: 'build/popup/index.js', dst: 'popup.js' },
+    { src: 'src/popup/index.html', dst: 'popup.html' },
     { src: 'src/newTab/index.html', dst: 'newTab.html' },
     { src: 'src/css/github-markdown.css', dst: 'github-markdown.css' },
     { src: 'src/css/styles.css', dst: 'styles.css' },
