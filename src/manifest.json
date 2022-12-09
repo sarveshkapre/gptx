@@ -4,8 +4,7 @@
   "version": "1.0.0",
   "description": "ChatGPT-powered Chrome Extension, Elevates Browsing Experience and Productivity.",
   "action": {
-    "default_icon": "icon19.png",
-    "default_popup": "popup.html"
+    "default_icon": "icon19.png"
   },
   "permissions": ["storage", "activeTab"],
   "icons": {
