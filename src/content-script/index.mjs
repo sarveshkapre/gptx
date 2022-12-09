@@ -1,4 +1,9 @@
-import { getRefreshIconSvg, getCopyIconSvg, getNewTabIconSvg } from './templateStrings'
+import {
+  getRefreshIconSvg,
+  getCopyIconSvg,
+  getNewTabIconSvg,
+} from '../constants/templateStrings.mjs'
+import { storageCache } from './localStorage.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
@@ -25,7 +30,7 @@ async function run(question) {
   }
   const resultCardContentTemplate = `
     <div id="gptxCardHeader">
-      <span id="gptxLoadingPara">Loading results from OpenAI...</span>
+      <span id="gptxLoadingPara">Loading results from ChatGPT...</span>
       <span id="gptxTimePara"></span>
     </div>
     <div id="gptxCardBody">
@@ -62,6 +67,7 @@ async function run(question) {
   const gptxResponseBodyElem = document.getElementById('gptxResponseBody')
   const gptxFooterRefreshBtn = document.getElementById('gptxFooterRefreshBtn')
   const gptxFooterCopyBtn = document.getElementById('gptxFooterCopyBtn')
+  const gptxFooterNewTabBtn = document.getElementById('gptxFooterNewTabBtn')
   let startTime = performance.now()
   let endTime
 
@@ -69,7 +75,7 @@ async function run(question) {
     /**
      * Update DOM if result is returned or is already cached
      */
-    gptxLoadingParaElem.innerHTML = 'OpenAI powered results'
+    gptxLoadingParaElem.innerHTML = 'ChatGPT powered results'
     gptxTimeParaElem.style.display = 'inline'
     gptxResponseBodyElem.innerHTML = markdown.render(text)
     gptxResponseBodyElem.style['margin-bottom'] = '0px'
@@ -85,24 +91,34 @@ async function run(question) {
       if (msg.answer === 'CHAT_GPTX_ANSWER_END') {
         gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
         gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
-        Browser.storage.local
-          .set({
-            [question]: previousResponse,
-          })
-          .then(() => {
-            console.log('GPTX: question answer cached')
-          })
+        gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
+        storageCache.setCache(question, previousResponse, 60 * 60)
+        console.log('GPTX: question answer cached')
+        // Browser.storage.local
+        //   .set({
+        //     [question]: previousResponse,
+        //   })
+        //   .then(() => {
+        //     console.log('GPTX: question answer cached')
+        //   })
       } else {
         previousResponse = msg.answer
         gptxFooterCopyBtn.classList.add('gptxDisableBtn')
+        gptxFooterNewTabBtn.classList.add('gptxDisableBtn')
         updateResultDOM(msg.answer, startTime)
       }
     } else if (msg.error === 'UNAUTHORIZED') {
+      gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
+      gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
+      gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
       gptxLoadingParaElem.style.display = 'none'
       gptxResponseBodyElem.style['margin-top'] = '0px'
       gptxResponseBodyElem.innerHTML =
         '<p>Please login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first</p>'
     } else {
+      gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
+      gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
+      gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
       gptxLoadingParaElem.style.display = 'none'
       gptxResponseBodyElem.style['margin-top'] = '0px'
       gptxResponseBodyElem.innerHTML = '<p>Failed to load response from ChatGPT</p>'
@@ -111,13 +127,15 @@ async function run(question) {
     gptxCardHeaderElem.style.float = 'right'
   })
 
-  let cachedQuestion = await Browser.storage.local.get(question)
-  if (Object.keys(cachedQuestion).length > 0) {
+  // let cachedQuestion = await Browser.storage.local.get(question)
+  let cachedQuestion = storageCache.getCache(question)
+  if (cachedQuestion) {
     console.log('GPTX: cached result used')
-    updateResultDOM(cachedQuestion[question], startTime)
+    updateResultDOM(cachedQuestion, startTime)
   } else {
     gptxFooterRefreshBtn.classList.add('gptxDisableBtn')
     gptxFooterCopyBtn.classList.add('gptxDisableBtn')
+    gptxFooterNewTabBtn.classList.add('gptxDisableBtn')
     port.postMessage({ question })
   }
 
@@ -127,13 +145,18 @@ async function run(question) {
     startTime = performance.now()
     gptxFooterRefreshBtn.classList.add('gptxDisableBtn')
     gptxFooterCopyBtn.classList.add('gptxDisableBtn')
+    gptxFooterNewTabBtn.classList.add('gptxDisableBtn')
     port.postMessage({ question })
   })
   gptxFooterCopyBtn.addEventListener('click', async () => {
-    cachedQuestion = await Browser.storage.local.get(question)
-    clipboard.write(cachedQuestion[question]).then(() => {
+    // cachedQuestion = await Browser.storage.local.get(question)
+    cachedQuestion = storageCache.getCache(question)
+    clipboard.write(cachedQuestion).then(() => {
       console.log('gptx result copied')
     })
+  })
+  gptxFooterNewTabBtn.addEventListener('click', () => {
+    port.postMessage({ GPTX_CREATE_NEW_TAB: question })
   })
 }
 
@@ -145,3 +168,7 @@ if (searchInput && searchInput.value) {
     run(searchInput.value)
   }
 }
+Browser.runtime.onMessage.addListener(function (request, sender) {
+  console.log(sender.tab ? 'from a content script:' + sender.tab.url : 'from the extension')
+  console.log(request)
+})

@@ -10,7 +10,11 @@ async function deleteOldDir() {
 
 async function runEsbuild() {
   await esbuild.build({
-    entryPoints: ['src/content-script/index.mjs', 'src/background/index.mjs'],
+    entryPoints: [
+      'src/newTab/index.mjs',
+      'src/content-script/index.mjs',
+      'src/background/index.mjs',
+    ],
     bundle: true,
     outdir: outdir,
   })
@@ -42,11 +46,14 @@ async function build() {
   const commonFiles = [
     { src: 'build/content-script/index.js', dst: 'content-script.js' },
     { src: 'build/background/index.js', dst: 'background.js' },
+    { src: 'build/newTab/index.js', dst: 'newTab.js' },
     { src: 'src/popup/popup.html', dst: 'popup.html' },
+    { src: 'src/newTab/index.html', dst: 'newTab.html' },
     { src: 'src/css/github-markdown.css', dst: 'github-markdown.css' },
     { src: 'src/css/styles.css', dst: 'styles.css' },
     { src: 'src/css/bootstrap.min.css', dst: 'bootstrap.min.css' },
     { src: 'src/css/result_card.css', dst: 'result_card.css' },
+    { src: 'src/css/newTab.css', dst: 'newTab.css' },
     { src: 'src/img/icon19.png', dst: 'icon19.png' },
     { src: 'src/img/icon16.png', dst: 'icon16.png' },
     { src: 'src/img/icon48.png', dst: 'icon48.png' },

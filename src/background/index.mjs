@@ -64,19 +64,33 @@ async function getAnswer(question, callback) {
   })
 }
 
+let questionToNewTab
 Browser.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (msg) => {
     console.log('GPTX: received msg', msg)
-    try {
-      await getAnswer(msg.question, (answer) => {
-        port.postMessage({ answer })
+    if (msg.GPTX_CREATE_NEW_TAB) {
+      Browser.tabs.create({
+        url: 'newTab.html',
       })
-    } catch (err) {
-      console.error(err)
-      port.postMessage({ error: err.message })
-      Browser.storage.local.remove(GPTX_ACCESS_TOKEN_STORAGE_NAME).then(() => {
-        console.log('GPTX: cached token removed')
-      })
+      questionToNewTab = msg.GPTX_CREATE_NEW_TAB
+    } else {
+      try {
+        await getAnswer(msg.question, (answer) => {
+          port.postMessage({ answer })
+        })
+      } catch (err) {
+        console.error(err)
+        port.postMessage({ error: err.message })
+        Browser.storage.local.remove(GPTX_ACCESS_TOKEN_STORAGE_NAME).then(() => {
+          console.log('GPTX: cached token removed')
+        })
+      }
     }
   })
+})
+
+Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'getQuestion') {
+    sendResponse({ question: questionToNewTab })
+  }
 })
