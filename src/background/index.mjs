@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
 import Browser from 'webextension-polyfill'
 import { fetchSSE } from './fetch-sse.mjs'
+import ExpiryMap from 'expiry-map'
 
-const GPTX_ACCESS_TOKEN_STORAGE_NAME = 'gptxAccessToken'
+const KEY_ACCESS_TOKEN = 'accessToken'
+const cache = new ExpiryMap(10 * 1000)
 
 async function getAccessToken() {
-  const cachedToken = await Browser.storage.local.get(GPTX_ACCESS_TOKEN_STORAGE_NAME)
-  if (Object.keys(cachedToken).length > 0) {
-    console.log('GPTX: cached token used')
-    return cachedToken[GPTX_ACCESS_TOKEN_STORAGE_NAME]
+  if (cache.get(KEY_ACCESS_TOKEN)) {
+    return cache.get(KEY_ACCESS_TOKEN)
   }
   const resp = await fetch('https://chat.openai.com/api/auth/session')
     .then((r) => r.json())
@@ -16,13 +16,7 @@ async function getAccessToken() {
   if (!resp.accessToken) {
     throw new Error('UNAUTHORIZED')
   }
-  Browser.storage.local
-    .set({
-      [GPTX_ACCESS_TOKEN_STORAGE_NAME]: resp.accessToken,
-    })
-    .then(() => {
-      console.log('GPTX: fetched token saved')
-    })
+  cache.set(KEY_ACCESS_TOKEN, resp.accessToken)
   return resp.accessToken
 }
 
@@ -81,9 +75,7 @@ Browser.runtime.onConnect.addListener((port) => {
       } catch (err) {
         console.error(err)
         port.postMessage({ error: err.message })
-        Browser.storage.local.remove(GPTX_ACCESS_TOKEN_STORAGE_NAME).then(() => {
-          console.log('GPTX: cached token removed')
-        })
+        cache.delete(KEY_ACCESS_TOKEN)
       }
     }
   })
