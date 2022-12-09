@@ -1,5 +1,5 @@
 {
-  "name": "chat-gpt-google-extension",
+  "name": "gptx",
   "version": "1.0.0",
   "main": "background.js",
   "keywords": [],
