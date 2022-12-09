@@ -2,7 +2,7 @@
   width: 70%;
   border-radius: 10px;
   border-width: "0.2px";
-  padding: 0 10px 10px 10px;
+  padding: 0 10px 5px 10px;
   font-size: 16px;
   margin-bottom: 30px;
 }
@@ -26,4 +26,37 @@
   width: 100%;
   overflow-y: auto;
   max-height: 225px;
+}
+#gptxCardFooter {
+  display: inline-flex;
+  justify-content: end;
+  width: 100%;
+}
+.gptxFooterBtns {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gptxFooterBtns:hover {
+  background-color: var(--color-refresh-hover);
+}
+.gptxDisableBtn {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-refresh-hover: #5f63681d;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-refresh-hover: #5f636874;
+  }
 }

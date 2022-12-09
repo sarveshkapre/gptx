@@ -1,29 +1,25 @@
 ## GPTX
 
-<<<<<<< Updated upstream
 OpenAI-powered Chrome Extension Boosts Browser Efficiency and Productivity.
-=======
-Introducing GPTX - the powerful OpenAI Chrome Extension - that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless.
->>>>>>> Stashed changes
 <br>
 
 ### Description
 
-<<<<<<< Updated upstream
-Introducing GPTX -  the powerful OpenAI Chrome Extension - that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless. With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
-=======
-With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
->>>>>>> Stashed changes
+Introducing GPTX - the powerful OpenAI Chrome Extension - that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless. With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
 <br>
 
 ### Installation
 
 1. Clone or download this repository
-2. Add you OpenAI Secret API key in content-script.js file
-3. Open Google Chrome and go to the extensions page (chrome://extensions/)
-4. Enable 'Developer mode' by clicking the toggle in the top right corner
-5. Click on 'Load unpacked' and select the downloaded repository folder
-6. The extension should now be installed and can be accessed through the extensions icon in the top right corner of the browser
+2. Install dependencies using `npm install`
+3. Build extension using `npm build`
+
+For installing in Google Chrome
+
+1. Open Google Chrome and go to the extensions page (chrome://extensions/)
+2. Enable 'Developer mode' by clicking the toggle in the top right corner
+3. Click on 'Load unpacked' and select the /build/chromium folder from your project folder
+4. The extension should now be installed and can be accessed through the extensions icon in the top right corner of the browser
 
 ### Usage
 
@@ -67,11 +63,3 @@ Thank you for visiting and we hope you find something that interests you. Happy 
 
 This project is licensed under the MIT License.
 <br>
-<<<<<<< Updated upstream
-=======
-
-### Acknowledgements
-
--
--
->>>>>>> Stashed changes

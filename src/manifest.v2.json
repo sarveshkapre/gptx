@@ -21,7 +21,7 @@
       "matches": ["https://*/search*"],
       "include_globs": ["*.google.*/*"],
       "js": ["content-script.js"],
-      "css": ["github-markdown.css", "styles.css"]
+      "css": ["bootstrap.min.css", "github-markdown.css", "styles.css", "result_card.css"]
     }
   ]
 }

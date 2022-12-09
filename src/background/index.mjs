@@ -1,15 +1,14 @@
-import ExpiryMap from 'expiry-map'
 import { v4 as uuidv4 } from 'uuid'
 import Browser from 'webextension-polyfill'
 import { fetchSSE } from './fetch-sse.mjs'
 
-const KEY_ACCESS_TOKEN = 'accessToken'
-
-const cache = new ExpiryMap(10 * 1000)
+const GPTX_ACCESS_TOKEN_STORAGE_NAME = 'gptxAccessToken'
 
 async function getAccessToken() {
-  if (cache.get(KEY_ACCESS_TOKEN)) {
-    return cache.get(KEY_ACCESS_TOKEN)
+  const cachedToken = await Browser.storage.local.get(GPTX_ACCESS_TOKEN_STORAGE_NAME)
+  if (Object.keys(cachedToken).length > 0) {
+    console.log('GPTX: cached token used')
+    return cachedToken[GPTX_ACCESS_TOKEN_STORAGE_NAME]
   }
   const resp = await fetch('https://chat.openai.com/api/auth/session')
     .then((r) => r.json())
@@ -17,7 +16,13 @@ async function getAccessToken() {
   if (!resp.accessToken) {
     throw new Error('UNAUTHORIZED')
   }
-  cache.set(KEY_ACCESS_TOKEN, resp.accessToken)
+  Browser.storage.local
+    .set({
+      [GPTX_ACCESS_TOKEN_STORAGE_NAME]: resp.accessToken,
+    })
+    .then(() => {
+      console.log('GPTX: fetched token saved')
+    })
   return resp.accessToken
 }
 
@@ -45,8 +50,9 @@ async function getAnswer(question, callback) {
       parent_message_id: uuidv4(),
     }),
     onMessage(message) {
-      console.debug('sse message', message)
+      console.debug('GPTX: sse message', message)
       if (message === '[DONE]') {
+        callback('CHAT_GPTX_ANSWER_END')
         return
       }
       const data = JSON.parse(message)
@@ -60,7 +66,7 @@ async function getAnswer(question, callback) {
 
 Browser.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (msg) => {
-    console.debug('received msg', msg)
+    console.log('GPTX: received msg', msg)
     try {
       await getAnswer(msg.question, (answer) => {
         port.postMessage({ answer })
@@ -68,7 +74,9 @@ Browser.runtime.onConnect.addListener((port) => {
     } catch (err) {
       console.error(err)
       port.postMessage({ error: err.message })
-      cache.delete(KEY_ACCESS_TOKEN)
+      Browser.storage.local.remove(GPTX_ACCESS_TOKEN_STORAGE_NAME).then(() => {
+        console.log('GPTX: cached token removed')
+      })
     }
   })
 })
