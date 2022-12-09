@@ -109,16 +109,16 @@ async function run(question) {
       }
     } else if (msg.error === 'UNAUTHORIZED') {
       gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
-      gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
-      gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
+      // gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
+      // gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
       gptxLoadingParaElem.style.display = 'none'
       gptxResponseBodyElem.style['margin-top'] = '0px'
       gptxResponseBodyElem.innerHTML =
-        '<p>Please login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first</p>'
+        '<p>Please login to <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> to view ChatGPT result</p>'
     } else {
       gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
-      gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
-      gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
+      // gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
+      // gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
       gptxLoadingParaElem.style.display = 'none'
       gptxResponseBodyElem.style['margin-top'] = '0px'
       gptxResponseBodyElem.innerHTML = '<p>Failed to load response from ChatGPT</p>'
