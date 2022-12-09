@@ -5,16 +5,21 @@ OpenAI-powered Chrome Extension Boosts Browser Efficiency and Productivity.
 
 ### Description
 
-Introducing GPTX -  the powerful OpenAI Chrome Extension - that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless. With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
+Introducing GPTX - the powerful OpenAI Chrome Extension - that leverages the latest advancements in artificial intelligence to elevate your browsing experience and make daily tasks effortless. With our extension, you can effortlessly access information, automate tasks, and improve your productivity. Whether you're a student, professional, or just someone looking to streamline their browsing experience, our extension has you covered. Give it a try today and see how OpenAI can level up your browsing experience.
 <br>
 
 ### Installation
 
 1. Clone or download this repository
-2. Open Google Chrome and go to the extensions page (chrome://extensions/)
-3. Enable 'Developer mode' by clicking the toggle in the top right corner
-4. Click on 'Load unpacked' and select the downloaded repository folder
-5. The extension should now be installed and can be accessed through the extensions icon in the top right corner of the browser
+2. Install dependencies using `npm install`
+3. Build extension using `npm build`
+
+For installing in Google Chrome
+
+1. Open Google Chrome and go to the extensions page (chrome://extensions/)
+2. Enable 'Developer mode' by clicking the toggle in the top right corner
+3. Click on 'Load unpacked' and select the /build/chromium folder from your project folder
+4. The extension should now be installed and can be accessed through the extensions icon in the top right corner of the browser
 
 ### Usage
 
@@ -49,7 +54,7 @@ We welcome any contributions to this project. If you have any suggestions or imp
 
 ### About US
 
-We are a team of passionate developers dedicated to creating innovative solutions and advancing the field of technology. 
+We are a team of passionate developers dedicated to creating innovative solutions and advancing the field of technology.
 Our goal is to collaborate with like-minded individuals to develop high-quality, user-friendly products.
 Thank you for visiting and we hope you find something that interests you. Happy coding!
 <br>

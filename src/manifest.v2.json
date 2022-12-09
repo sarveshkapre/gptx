@@ -1,0 +1,27 @@
+{
+  "name": "GPTx",
+  "version": "1.0.0",
+  "description": "ChatGPT-powered Chrome Extension, Elevates Browsing Experience and Productivity.",
+  "manifest_version": 2,
+  "page_action": {
+    "default_icon": "icon19.png",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": ["storage", "webRequest", "https://*.openai.com/"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/search*"],
+      "include_globs": ["*.google.*/*"],
+      "js": ["content-script.js"],
+      "css": ["bootstrap.min.css", "github-markdown.css", "styles.css", "result_card.css"]
+    }
+  ]
+}
