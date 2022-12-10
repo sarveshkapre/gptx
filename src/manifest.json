@@ -22,6 +22,10 @@
       "include_globs": ["*.google.*/*"],
       "js": ["content-script.js"],
       "css": ["bootstrap.min.css", "github-markdown.css", "styles.css", "result_card.css"]
+    },
+    {
+      "matches": ["https://chat.openai.com/chat"],
+      "js": ["chatgpt-script.js"]
     }
   ]
 }
