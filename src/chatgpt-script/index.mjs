@@ -1,5 +1,5 @@
 import clipboard from 'clipboardy'
-import { getCopyIconSvg } from '../constants/templateStrings.mjs'
+import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/templateStrings.mjs'
 
 const navElem = document.getElementsByTagName('nav')['0']
 const copyElem = document.createElement('a')
@@ -16,6 +16,15 @@ copyElem.addEventListener('click', () => {
   const childElems = parentElem.getElementsByClassName(
     'w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group',
   )
+  if (Object.keys(childElems).length > 0) {
+    copyElem.innerHTML = `${getApprovedCheckIconSvg('1.2em', '1.2em', 'green')}Copied`
+    copyElem.style.color = 'green'
+    // Set a timeout to change the button text back after 1 second
+    setTimeout(function () {
+      copyElem.innerHTML = `${getCopyIconSvg('1.2em', '1.2em', 'white')}Copy entire thread`
+      copyElem.style.color = ''
+    }, 700)
+  }
   let entireThread = ''
   const divider = '\n\n' + '='.repeat(50) + '\n\n'
   Object.keys(childElems).forEach((key, index) => {

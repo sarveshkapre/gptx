@@ -21,3 +21,11 @@ export function getNewTabIconSvg(width = '1em', height = '1em', color = 'red') {
   </svg>
   `
 }
+export function getApprovedCheckIconSvg(width = '1em', height = '1em', color = 'green') {
+  return `
+  <svg width=${width} height=${height} fill="${color}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.839,10.403C19.944,10.919,20,11.453,20,12c0,4.411-3.589,8-8,8s-8-3.589-8-8s3.589-8,8-8c1.633,0,3.152,0.494,4.42,1.338l1.431-1.431C16.203,2.713,14.185,2,12,2C6.486,2,2,6.486,2,12s4.486,10,10,10s10-4.486,10-10c0-1.126-0.196-2.206-0.541-3.217L19.839,10.403z" />
+    <path stroke="${color}" d="M22 4L11 15 7 11" />
+  </svg>
+  `
+}
