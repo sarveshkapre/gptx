@@ -60,6 +60,7 @@ For installing in Google Chrome
 - Extension Basics 101 (https://developer.chrome.com/docs/extensions/mv3/getstarted/extensions-101/)
 - Development Basics (https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/)
 - Create and publish custom Chrome apps & extensions - Chrome Enterprise and Education Help (https://support.google.com/chrome/a/answer/2714278?hl=en)
+- https://github.com/wong2/chat-gpt-google-extension
 
 ### Contributions
 
