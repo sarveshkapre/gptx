@@ -5,7 +5,7 @@ OpenAI-powered Chrome Extension Boosts Browser Efficiency and Productivity.
 
 ### Description
 
-Introducing GPTX - the powerful Chrome Extension - that leverages ChatGPT to elevate your browsing experience and make daily tasks effortless. GPT-generated results can improve search accuracy, efficiency, user experience, creativity, accessibility, trust and credibility, and convenience.
+A new Chrome extension, called GPTX, has been released to improve users' browsing experience using the ChatGPT API. The extension allows users to access the results of ChatGPT, which is a large language model trained by OpenAI, directly in their Google usage. This allows users to compare the results of ChatGPT with those of Google, and decide for themselves which one is better for their needs. The integration of ChatGPT into the browsing experience is seamless, and users do not need to choose between the two platforms. GPT-generated results can improve search accuracy, efficiency, user experience, creativity, accessibility, trust and credibility, and convenience.
 
 The use of GPT-generated results alongside traditional Google results can provide several benefits. Showing both types of results can increase the accuracy and relevance of the information presented to the user, as the GPT-generated results can provide additional context and information that may not be present in the traditional results. This can also improve the efficiency of the search, allowing users to find the information they need faster.
 
@@ -16,7 +16,12 @@ Additionally, the inclusion of GPT-generated results can increase the accessibil
 Showing GPT-generated results alongside traditional results can also increase trust and credibility in the information presented, as it provides users with a more comprehensive picture of the information they are seeking. Finally, the GPT-generated results can provide users with quick and easy access to additional information, increasing the convenience of the search experience.
 <br>
 
-### Installation
+### User Installation
+
+https://chrome.google.com/webstore/detail/gptx/ljmohcbobmmelbiijhpigdmmoboabjcl
+
+
+### Developer Installation
 
 1. Clone or download this repository
 2. Install dependencies using `npm install`
