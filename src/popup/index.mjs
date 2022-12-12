@@ -13,7 +13,8 @@ async function main() {
   } else {
     isEnabled = isEnabledObj.gptxExtensionEnabled
   }
-  console.log(isEnabled)
+
+  const gptxViewHistoryBtn = document.getElementById('gptxViewHistory')
 
   const gptxExtensionStatusCheck = document.getElementById('gptxEnableExtensionSwitch')
   gptxExtensionStatusCheck.checked = isEnabled
@@ -41,5 +42,10 @@ async function main() {
           console.log('gptx extension disabled')
         })
     }
+  })
+  gptxViewHistoryBtn.addEventListener('click', () => {
+    Browser.tabs.create({
+      url: 'viewHistory.html',
+    })
   })
 }

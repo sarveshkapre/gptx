@@ -1,5 +1,5 @@
 .gptxPopupBody {
-  --popup-body-height: 200px;
+  --popup-body-height: 220px;
   height: var(--popup-body-height);
   width: 250px;
 }

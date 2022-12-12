@@ -15,9 +15,17 @@ if (searchInput && searchInput.value) {
 
 async function run(question) {
   let isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
-  console.log('gptx extension enabled: ', isEnabledObj.gptxExtensionEnabled)
+  let gptxExtensionEnabled = isEnabledObj.gptxExtensionEnabled
+  if (gptxExtensionEnabled === undefined) {
+    // for the first time load or after user clears browsing history
+    await Browser.storage.local.set({
+      gptxExtensionEnabled: true,
+    })
+    gptxExtensionEnabled = true
+  }
+  console.log('gptx extension enabled: ', gptxExtensionEnabled)
   // chatgpt api will be fired if extension is enabled
-  if (isEnabledObj.gptxExtensionEnabled) {
+  if (gptxExtensionEnabled) {
     const parentNode = document.getElementById('cnt') // get parent node to insert result card
     const margin_left = window
       .getComputedStyle(document.getElementById('center_col'), null)

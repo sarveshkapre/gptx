@@ -44,3 +44,18 @@ export function getResultCardTemplate(iconColor) {
 </div>
   `
 }
+
+export function getQADivContentTemplate(type, content) {
+  return `
+  <div class="gptxQAType">
+    <h4>${type}</h4>
+  </div>
+  <div class="gptxQAContent">${content}</div>
+  `
+}
+
+export function getNoHistoryTemplate() {
+  return `<div class="gptxEmptyHistory">
+    Your ChatGPT history is currently empty.
+  </div>`
+}
