@@ -73,3 +73,31 @@
 .gptxSwitchCheckboxInput:checked ~ .gptxSwitchCheckboxInput__fill::after  {
   transform: translateX(var(--switch-height));
 }
+.card-footer.gptxPopupCardFooter {
+  display: inline-flex;
+  justify-content: end;
+  width: 100%;
+}
+#gptxViewHistory {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  /* border-radius: 50%; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#gptxViewHistory:hover {
+  background-color: var(--color-refresh-hover);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-refresh-hover: #5f63681d;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-refresh-hover: #5f636874;
+  }
+}

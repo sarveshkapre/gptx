@@ -1,3 +1,4 @@
+import { getViewHistoryIcon } from '../constants/templateStrings.mjs'
 import Browser from 'webextension-polyfill'
 
 main()
@@ -15,6 +16,7 @@ async function main() {
   }
 
   const gptxViewHistoryBtn = document.getElementById('gptxViewHistory')
+  gptxViewHistoryBtn.innerHTML = getViewHistoryIcon('1.4em', '1.4em', 'black')
 
   const gptxExtensionStatusCheck = document.getElementById('gptxEnableExtensionSwitch')
   gptxExtensionStatusCheck.checked = isEnabled
