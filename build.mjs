@@ -55,6 +55,7 @@ async function build() {
     { src: 'src/css/styles.css', dst: 'styles.css' },
     { src: 'src/css/bootstrap.min.css', dst: 'bootstrap.min.css' },
     { src: 'src/css/result_card.css', dst: 'result_card.css' },
+    { src: 'src/css/popup.css', dst: 'popup.css' },
     { src: 'src/css/newTab.css', dst: 'newTab.css' },
     { src: 'src/img/icon19.png', dst: 'icon19.png' },
     { src: 'src/img/icon16.png', dst: 'icon16.png' },

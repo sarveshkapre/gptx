@@ -21,3 +21,26 @@ export function getNewTabIconSvg(width = '1em', height = '1em', color = 'red') {
   </svg>
   `
 }
+
+export function getResultCardTemplate(iconColor) {
+  return `
+  <div id="gptxCardHeader">
+  <span id="gptxLoadingPara">Loading results from ChatGPT...</span>
+  <span id="gptxTimePara"></span>
+</div>
+<div id="gptxCardBody">
+  <div id="gptxResponseBody" class="markdown-body" dir="auto"></div>
+</div>
+<div id="gptxCardFooter">
+  <div class="btn gptxFooterBtns" id="gptxFooterNewTabBtn">
+    ${getNewTabIconSvg('1.2em', '1.2em', iconColor)}
+  </div>
+  <div class="btn gptxFooterBtns" id="gptxFooterCopyBtn">
+    ${getCopyIconSvg('1.2em', '1.2em', iconColor)}
+  </div>
+  <div class="btn gptxFooterBtns" id="gptxFooterRefreshBtn">
+    ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}
+  </div>
+</div>
+  `
+}

@@ -1,24 +1,31 @@
-import {
-  getRefreshIconSvg,
-  getCopyIconSvg,
-  getNewTabIconSvg,
-} from '../constants/templateStrings.mjs'
+import { getResultCardTemplate } from '../constants/templateStrings.mjs'
 // import { storageCache } from './localStorage.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
 
+const searchInput = document.getElementsByName('q')[0] // this will return search box (.input.gLFyf) element
+if (searchInput && searchInput.value) {
+  // only run on first page
+  const startParam = new URL(location.href).searchParams.get('start') || '0'
+  if (startParam === '0') {
+    run(searchInput.value)
+  }
+}
+
 async function run(question) {
   let isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
-  console.log(isEnabledObj.gptxExtensionEnabled)
+  console.log('gptx extension enabled: ', isEnabledObj.gptxExtensionEnabled)
+  // chatgpt api will be fired if extension is enabled
   if (isEnabledObj.gptxExtensionEnabled) {
-    const parentNode = document.getElementById('cnt')
+    const parentNode = document.getElementById('cnt') // get parent node to insert result card
     const margin_left = window
       .getComputedStyle(document.getElementById('center_col'), null)
       .getPropertyValue('margin-left')
-    const newNode = document.createElement('div')
+    const newNode = document.createElement('div') // created element to insert chatgpt results content
     newNode.classList.add('gptxCard')
 
+    // set colors to footer icons based on dark/light mode
     let footerBtnsIconSvgColor
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       // add border color for dark mode
@@ -29,29 +36,9 @@ async function run(question) {
       newNode.style.border = '1px solid #dadce0'
       footerBtnsIconSvgColor = '#373b3e'
     }
-    const resultCardContentTemplate = `
-    <div id="gptxCardHeader">
-      <span id="gptxLoadingPara">Loading results from ChatGPT...</span>
-      <span id="gptxTimePara"></span>
-    </div>
-    <div id="gptxCardBody">
-      <div id="gptxResponseBody" class="markdown-body" dir="auto"></div>
-    </div>
-    <div id="gptxCardFooter">
-      <div class="btn gptxFooterBtns" id="gptxFooterNewTabBtn">
-        ${getNewTabIconSvg('1.2em', '1.2em', footerBtnsIconSvgColor)}
-      </div>
-      <div class="btn gptxFooterBtns" id="gptxFooterCopyBtn">
-        ${getCopyIconSvg('1.2em', '1.2em', footerBtnsIconSvgColor)}
-      </div>
-      <div class="btn gptxFooterBtns" id="gptxFooterRefreshBtn">
-        ${getRefreshIconSvg('1.2em', '1.2em', footerBtnsIconSvgColor)}
-      </div>
-    </div>
-  `
-    newNode.innerHTML = resultCardContentTemplate
+    newNode.innerHTML = getResultCardTemplate(footerBtnsIconSvgColor) // added template to new node created
 
-    // Get a reference to the child node before which you want to insert the new node
+    // Get a reference to the sibling node before which you want to insert the new node
     const referenceNode = document.getElementById('rcnt')
     const max_width = window.getComputedStyle(referenceNode, null).getPropertyValue('max-width')
 
@@ -61,18 +48,22 @@ async function run(question) {
     // Insert the new node before the reference node
     parentNode.insertBefore(newNode, referenceNode)
 
-    const port = Browser.runtime.connect()
+    const port = Browser.runtime.connect() // defined port to send questions to background worker
+
     const gptxCardHeaderElem = document.getElementById('gptxCardHeader')
     const gptxLoadingParaElem = document.getElementById('gptxLoadingPara')
     const gptxResponseBodyElem = document.getElementById('gptxResponseBody')
     const gptxFooterRefreshBtn = document.getElementById('gptxFooterRefreshBtn')
     const gptxFooterCopyBtn = document.getElementById('gptxFooterCopyBtn')
     const gptxFooterNewTabBtn = document.getElementById('gptxFooterNewTabBtn')
-    let startTime = performance.now()
 
+    let startTime = performance.now()
     let previousResponse
+
+    // listen to chatgpt result sent by background worker
     port.onMessage.addListener(function (msg) {
       if (msg.answer) {
+        // add {question: answer} to local storage at end of answer
         if (msg.answer === 'CHAT_GPTX_ANSWER_END') {
           gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
           gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
@@ -94,16 +85,12 @@ async function run(question) {
         }
       } else if (msg.error === 'UNAUTHORIZED') {
         gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
-        gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
-        gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
         gptxLoadingParaElem.style.display = 'none'
         gptxResponseBodyElem.style['margin-top'] = '0px'
         gptxResponseBodyElem.innerHTML =
           '<p>Please login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first</p>'
       } else {
         gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
-        gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
-        gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
         gptxLoadingParaElem.style.display = 'none'
         gptxResponseBodyElem.style['margin-top'] = '0px'
         gptxResponseBodyElem.innerHTML = '<p>Failed to load response from ChatGPT</p>'
@@ -112,6 +99,11 @@ async function run(question) {
       gptxCardHeaderElem.style.float = 'right'
     })
 
+    /**
+     * if question is cached
+     *  - return result stored in local storage
+     * else - send question to background worker
+     */
     let cachedQuestion = await Browser.storage.local.get(question)
     // let cachedQuestion = storageCache.getCache(question)
     if (Object.keys(cachedQuestion).length > 0) {
@@ -145,9 +137,7 @@ async function run(question) {
     })
   }
   function updateResultDOM(text, startTime) {
-    /**
-     * Update DOM if result is returned or is already cached
-     */
+    // Updates DOM if result is returned or is already cached
     const gptxCardHeaderElem = document.getElementById('gptxCardHeader')
     const gptxLoadingParaElem = document.getElementById('gptxLoadingPara')
     const gptxTimeParaElem = document.getElementById('gptxTimePara')
@@ -164,16 +154,3 @@ async function run(question) {
     gptxCardHeaderElem.style.float = 'right'
   }
 }
-
-const searchInput = document.getElementsByName('q')[0] // this will return search box (.input.gLFyf) element
-if (searchInput && searchInput.value) {
-  // only run on first page
-  const startParam = new URL(location.href).searchParams.get('start') || '0'
-  if (startParam === '0') {
-    run(searchInput.value)
-  }
-}
-Browser.runtime.onMessage.addListener(function (request, sender) {
-  console.log(sender.tab ? 'from a content script:' + sender.tab.url : 'from the extension')
-  console.log(request)
-})
