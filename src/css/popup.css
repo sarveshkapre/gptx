@@ -1,4 +1,75 @@
-.form-check {
-  height: 200px;
-  width: 500px;
+.gptxPopupBody {
+  --popup-body-height: 200px;
+  height: var(--popup-body-height);
+  width: 250px;
+}
+.container.gptxPopupContainer {
+  height: var(--popup-body-height);
+  padding: 0;
+}
+.gptxPopupCard {
+  height: var(--popup-body-height);
+}
+.gptxPopupCardHeader {
+  display: inline-flex;
+}
+#gptxPopupCardHeaderText {
+  margin-top: 4px;
+  padding-left: 8px;
+}
+.card-body.gptxPopupCardBody {
+  padding-top: 5px;
+}
+.gptxDivider {
+  border-top: 1px solid rgba(0,0,0,.06);
+  width: 100%;
+}
+.gptxQuickSettings {
+  padding-left: 10px;
+}
+.gptxQSHeader {
+  padding-top: 10px;
+  padding-bottom: 5px;
+  font-weight: 700
+}
+.gptxSwitch {
+  padding-top: 15px;
+  padding-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.gptxSwitchLabel {
+  display: inline-block;
+  --switch-width: 40px;
+  --switch-height: calc(var(--switch-width)/2);
+  --switch-border-radius: calc(var(--switch-height)/2);
+}
+.gptxSwitchCheckboxInput {
+  display: none;
+}
+.gptxSwitchCheckboxInput__fill {
+  position: relative;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  border-radius: var(--switch-border-radius);
+  background: #DDDDDD;
+  transition: background 0.2s;
+}
+.gptxSwitchCheckboxInput__fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: var(--switch-height);
+  width: var(--switch-height);
+  background: #FFFFFF;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  border-radius: var(--switch-border-radius);
+  transition: transform 0.2s;
+}
+.gptxSwitchCheckboxInput:checked ~ .gptxSwitchCheckboxInput__fill  {
+  background: #009578;
+}
+.gptxSwitchCheckboxInput:checked ~ .gptxSwitchCheckboxInput__fill::after  {
+  transform: translateX(var(--switch-height));
 }

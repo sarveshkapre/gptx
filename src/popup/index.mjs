@@ -15,9 +15,9 @@ async function main() {
   }
   console.log(isEnabled)
 
-  const gptxExtensionStatusCheck = document.getElementById('gptxExtensionStatusCheck')
+  const gptxExtensionStatusCheck = document.getElementById('gptxEnableExtensionSwitch')
   gptxExtensionStatusCheck.checked = isEnabled
-  const gptxExtensionStatusCheckLabel = document.getElementById('gptxExtensionStatusCheckLabel')
+  const gptxExtensionStatusCheckLabel = document.getElementById('gptxEnableExtensionLabel')
   gptxExtensionStatusCheckLabel.innerHTML = isEnabled ? 'Pause GPTx' : 'Unpause GPTx'
   gptxExtensionStatusCheck.addEventListener('change', function () {
     if (this.checked) {
