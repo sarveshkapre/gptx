@@ -61,17 +61,24 @@ export function getResultCardTemplate(iconColor) {
   `
 }
 
-export function getQADivContentTemplate(type, content) {
+export function getQADivContentTemplate(question, answer) {
   return `
-  <div class="gptxQAType">
-    <h4>${type}</h4>
+  <div class="gptxQACheckbox">
+    <input type="checkbox" class="gptxQACheckboxInput" data-key="${question}">
   </div>
-  <div class="gptxQAContent">${content}</div>
+  <button class="gptxAccordionButton" type="button">
+    ${question}
+  </button>
+  <div class="gptxAccordionBody">
+    ${answer}
+  </div>
   `
 }
 
 export function getNoHistoryTemplate() {
-  return `<div class="gptxEmptyHistory">
+  return `
+  <div class="gptxEmptyHistory">
     Your ChatGPT history is currently empty.
-  </div>`
+  </div>
+  `
 }

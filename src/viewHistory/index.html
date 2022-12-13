@@ -11,6 +11,7 @@
     </style>
   </head>
   <body>
+    <div id="gptxSnackbar"></div>
     <nav class="navbar gptxHistoryNav">
       <div class="navbar-brand">
         <img class="gptxNavbarBrandIcon" height="36" width="36" src="icon48.png" />History
@@ -20,8 +21,11 @@
       <div class="row gptxHistorySettingsRow">
         <div class="col-2" id="gptxHistorySettingsColumn">
           <div class="gptxSettingsButtons" id="gptxClearAllData">Clear all browsing data</div>
+          <div class="gptxSettingsButtons" id="gptxClearSelection">Clear selected data</div>
         </div>
-        <div class="col-10" id="gptxHistoryQAColumn"></div>
+        <div class="col-10" id="gptxHistoryQAColumn">
+          <div class="accordion" id="gptxHistoryQAAccordian"></div>
+        </div>
       </div>
     </div>
   </body>

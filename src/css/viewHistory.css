@@ -1,3 +1,13 @@
+.toast {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 15px;
+  background-color: #333;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 5px;
+}
 .container-fluid.gptxHistoryContainer {
   padding: 0;
   margin: 0;
@@ -12,23 +22,29 @@
   font-style: italic;
   color: #666;
 }
-.gptxQuestionDiv {
-  display: flex;
-  color: white;
-  background-color: #343541;
-  padding-right: 10px;
+.gptxQACheckbox {
+  padding: 15px;
+  display: inline-block;
 }
-.gptxAnswerDiv {
-  display: flex;
+.gptxAccordionButton {
+  background: #343541;
   color: white;
+  display: inline-block;
+  width: calc(100% - 58px);
+  text-align: left;
+  border: none;
+  outline: none;
+  padding: 15px 15px 15px 10px;
+}
+.gptxAccordionHeader {
+  display: flex;
+  align-items: center;
+}
+.gptxAccordionBody {
   background-color: #444654;
-  padding-right: 20px;
-}
-.gptxQAType {
-  padding: 10px 20px 10px 20px;
-}
-.gptxQAContent {
-  padding: 10px;
+  color: white;
+  padding: 30px;
+  display: none;
 }
 #gptxHistorySettingsColumn {
   background-color: #202123;
@@ -58,4 +74,50 @@
 }
 .row.gptxHistorySettingsRow {
   background: #343541;
+}
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#gptxSnackbar {
+  visibility: hidden; /* Hidden by default. Visible on click */
+  min-width: 250px; /* Set a default minimum width */
+  margin-left: -125px; /* Divide value of min-width by 2 */
+  background-image: linear-gradient(to right, #6BD383, #3A756E);; /* Black background color */
+  /* background-image:  */
+  color: #fff; /* White text color */
+  text-align: center; /* Centered text */
+  border-radius: 10px; /* Rounded borders */
+  padding: 16px; /* Padding */
+  position: fixed; /* Sit on top of the screen */
+  z-index: 1; /* Add a z-index if needed */
+  left: 50%; /* Center the snackbar */
+  bottom: 30px; /* 30px from the bottom */
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#gptxSnackbar.show {
+  visibility: visible; /* Show the snackbar */
+  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+  However, delay the fade out process for 2.5 seconds */
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+  from {bottom: 0; opacity: 0;}
+  to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+  from {bottom: 0; opacity: 0;}
+  to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+  from {bottom: 30px; opacity: 1;}
+  to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+  from {bottom: 30px; opacity: 1;}
+  to {bottom: 0; opacity: 0;}
 }
