@@ -51,7 +51,6 @@ async function build() {
     { src: 'build/background/index.js', dst: 'background.js' },
     { src: 'build/newTab/index.js', dst: 'newTab.js' },
     { src: 'build/chatgpt-script/index.js', dst: 'chatgpt-script.js' },
-    { src: 'src/popup/popup.html', dst: 'popup.html' },
     { src: 'build/viewHistory/index.js', dst: 'viewHistory.js' },
     { src: 'build/popup/index.js', dst: 'popup.js' },
     { src: 'src/popup/index.html', dst: 'popup.html' },
