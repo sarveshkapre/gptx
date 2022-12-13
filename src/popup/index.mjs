@@ -16,7 +16,7 @@ async function main() {
   }
 
   const gptxViewHistoryBtn = document.getElementById('gptxViewHistory')
-  gptxViewHistoryBtn.innerHTML = getViewHistoryIcon('1.4em', '1.4em', 'black')
+  gptxViewHistoryBtn.innerHTML = getViewHistoryIcon('1.6em', '1.6em', 'black')
 
   const gptxExtensionStatusCheck = document.getElementById('gptxEnableExtensionSwitch')
   gptxExtensionStatusCheck.checked = isEnabled
