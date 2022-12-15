@@ -34,7 +34,8 @@
   text-align: left;
   border: none;
   outline: none;
-  padding: 15px 15px 15px 10px;
+  padding: 15px 15px 15px 5px;
+  margin-right: 5px;
 }
 .gptxAccordionHeader {
   display: flex;
@@ -45,6 +46,20 @@
   color: white;
   padding: 30px;
   display: none;
+}
+.gptxAccordionButton:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 16px;
+  color: #c0bfbf;
+  float: right;
+  margin-left: 5px;
+  margin-right: 20px;
+}
+/* .active, .gptxAccordionButton:hover {
+  border: 0.5px solid #b4b8e0;
+} */
+.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
 #gptxHistorySettingsColumn {
   background-color: #202123;
