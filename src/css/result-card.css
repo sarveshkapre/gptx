@@ -12,7 +12,7 @@
     --tooltip-text-color: #F5F5F5;
   }
 }
-.gptxCard {
+.gptx-card {
   width: 70%;
   border-radius: 10px;
   border-width: "0.2px";
@@ -20,7 +20,7 @@
   font-size: 16px;
   margin-bottom: 30px;
 }
-#gptxLoadingPara {
+#gptx-loading-para {
   text-align: right;
   width: 100%;
   display: inline;
@@ -29,24 +29,24 @@
   font-size: 12px;
   font-weight: 700;
 }
-#gptxTimePara {
+#gptx-time-para {
   text-align: right;
   font-size: 12px;
   color: #828282;
   margin-top: -16px;
   margin-left: 3px;
 }
-#gptxCardBody {
+#gptx-card-body {
   width: 100%;
   overflow-y: auto;
   max-height: 225px;
 }
-#gptxCardFooter {
+#gptx-card-footer {
   display: inline-flex;
   justify-content: end;
   width: 100%;
 }
-.gptxFooterBtns {
+.gptx-footer-btns {
   width: 30px;
   height: 30px;
   padding: 0;
@@ -55,17 +55,17 @@
   align-items: center;
   justify-content: center;
 }
-.gptxFooterBtns:hover {
+.gptx-footer-btns:hover {
   background-color: var(--color-refresh-hover);
 }
-.gptxDisableBtn {
+.gptx-disable-btn {
   pointer-events: none;
   opacity: 0.4;
 }
-.gptxFooterBtns {
+.gptx-footer-btns {
   position: relative;
 }
-.btn.gptxFooterBtns .gptx-tooltip-text {
+.btn.gptx-footer-btns .gptx-tooltip-text {
   visibility: hidden;
   width: 100px;
   top: 110%;
@@ -80,6 +80,11 @@
   z-index: 1;
   font-size: 12px;
 }
-.btn.gptxFooterBtns:hover .gptx-tooltip-text  {
+#gptx-tooltip-copied-text {
+  background-color: rgba(25,135,84, 0.1);
+  color: #198754;
+  border: 1px solid #198754;
+}
+.btn.gptx-footer-btns:hover .gptx-tooltip-text  {
   visibility: visible;
 }
