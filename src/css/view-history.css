@@ -1,3 +1,18 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gptx-question-bg-color: #343541;
+    --gptx-result-bg-color: #444654;
+    --gptx-text-color: white;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --gptx-question-bg-color: #ffffff;
+    --gptx-result-bg-color: #f7f7f8;
+    --gptx-text-color: black;
+  }
+}
+
 .toast {
   position: fixed;
   top: 10px;
@@ -22,19 +37,24 @@
   font-style: italic;
   color: #666;
 }
+.gptx-accordion-item {
+  background: var(--gptx-question-bg-color);
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
 .gptx-qa-checkbox {
   padding: 15px;
   display: inline-block;
+  
 }
 .gptx-accordion-button {
-  background: #343541;
-  color: white;
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
   display: inline-block;
   width: calc(100% - 58px);
   text-align: left;
   border: none;
   outline: none;
-  padding: 15px 15px 15px 5px;
+  padding: 15px 15px 15px 0;
   margin-right: 5px;
 }
 .gptx-accordion-header {
@@ -42,8 +62,8 @@
   align-items: center;
 }
 .gptx-accordion-body {
-  background-color: #444654;
-  color: white;
+  background-color: var(--gptx-result-bg-color);;
+  color: var(--gptx-text-color);
   padding: 30px;
   display: none;
 }
@@ -88,7 +108,7 @@
   background: #343541;
 }
 .row.gptx-nt-settings-row {
-  background: #343541;
+  background: var(--gptx-result-bg-color);
 }
 #gptx-snackbar {
   visibility: hidden;
