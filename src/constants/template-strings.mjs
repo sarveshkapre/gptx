@@ -72,7 +72,7 @@ export function getQADivContentTemplate(question, answer) {
   <button class="gptx-accordion-button" type="button">
     ${question}
   </button>
-  <div class="gptx-accordion-body">
+  <div class="gptx-accordion-body markdown-body">
     ${answer}
   </div>
   `
