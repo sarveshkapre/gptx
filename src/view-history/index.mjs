@@ -86,7 +86,6 @@ async function main() {
       Object.keys(cachedData).forEach((key) => {
         if (key !== 'gptxExtensionEnabled') {
           // append Q & A to div
-          console.log(cachedData[key])
           const qaDivTemplate = getQADivContentTemplate(key, markdown.render(cachedData[key]))
           const qaDivElem = document.createElement('div')
           qaDivElem.setAttribute('data-key', key)

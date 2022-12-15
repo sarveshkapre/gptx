@@ -1,11 +1,17 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-refresh-hover: #5f63681d;
+    --gptx-popup-header-bg-color: #343541;
+    --gptx-popup-body-bg-color: #444654;
+    --gptx-text-color: white;
   }
 }
 @media (prefers-color-scheme: light) {
   :root {
     --color-refresh-hover: #5f636874;
+    --gptx-popup-header-bg-color: #ffffff;
+    --gptx-popup-header-bg-color: #f7f7f8;
+    --gptx-text-color: black;
   }
 }
 
@@ -24,12 +30,16 @@
 .card-header.gptx-popup-card-header {
   display: inline-flex;
   padding: 5px;
+  background-color: var(--gptx-popup-header-bg-color);
+  color: var(--gptx-text-color);
 }
 #gptx-popup-card-header-text {
   padding-left: 8px;
 }
 .card-body.gptx-popup-card-body {
   padding: 5px;
+  background-color: var(--gptx-popup-body-bg-color);
+  color: var(--gptx-text-color);
 }
 .gptx-divider {
   border-top: 1px solid rgba(0,0,0,.06);
@@ -94,6 +104,7 @@
   justify-content: end;
   padding: 2px 5px;
   width: 100%;
+  background-color: var(--gptx-popup-header-bg-color);
 }
 #gptx-view-history {
   width: 30px;

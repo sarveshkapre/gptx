@@ -17,9 +17,18 @@ async function main() {
     isEnabled = isEnabledObj.gptxExtensionEnabled
   }
 
+  // set colors to footer icons based on dark/light mode
+  let footerBtnsIconSvgColor
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    // add border color for dark mode
+    footerBtnsIconSvgColor = '#dadce0'
+  } else {
+    // add border color for light mode
+    footerBtnsIconSvgColor = '#373b3e'
+  }
   // setting UI and event listener for View History Button
   const gptxViewHistoryBtn = document.getElementById('gptx-view-history')
-  gptxViewHistoryBtn.innerHTML = getViewHistoryIcon('1.6em', '1.6em', 'black')
+  gptxViewHistoryBtn.innerHTML = getViewHistoryIcon('1.6em', '1.6em', footerBtnsIconSvgColor)
   gptxViewHistoryBtn.addEventListener('click', () => {
     Browser.tabs.create({
       url: 'view-history.html',
