@@ -50,12 +50,15 @@ export function getResultCardTemplate(iconColor) {
 <div id="gptxCardFooter">
   <div class="btn gptxFooterBtns" id="gptxFooterNewTabBtn">
     ${getNewTabIconSvg('1.2em', '1.2em', iconColor)}
+    <span class="gptx-tooltip-text">Open in new tab</span>
   </div>
   <div class="btn gptxFooterBtns" id="gptxFooterCopyBtn">
     ${getCopyIconSvg('1.2em', '1.2em', iconColor)}
+    <span class="gptx-tooltip-text">Copy</span>
   </div>
   <div class="btn gptxFooterBtns" id="gptxFooterRefreshBtn">
     ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}
+    <span class="gptx-tooltip-text">Refresh</span>
   </div>
 </div>
   `

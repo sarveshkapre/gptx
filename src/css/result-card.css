@@ -1,3 +1,17 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-refresh-hover: #c0c0c06c;
+    --tooltip-bg-color: #808080;
+    --tooltip-text-color: #F5F5F5;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-refresh-hover: #5f636874;
+    --tooltip-bg-color: #333333;
+    --tooltip-text-color: #F5F5F5;
+  }
+}
 .gptxCard {
   width: 70%;
   border-radius: 10px;
@@ -48,15 +62,24 @@
   pointer-events: none;
   opacity: 0.4;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-refresh-hover: #5f63681d;
-  }
+.gptxFooterBtns {
+  position: relative;
 }
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-refresh-hover: #5f636874;
-  }
+.btn.gptxFooterBtns .gptx-tooltip-text {
+  visibility: hidden;
+  width: 100px;
+  top: 110%;
+  left: 50%;
+  margin-left: -50px;
+  background-color: var(--tooltip-bg-color);
+  color: var(--tooltip-text-color);
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  font-size: 12px;
+}
+.btn.gptxFooterBtns:hover .gptx-tooltip-text  {
+  visibility: visible;
 }

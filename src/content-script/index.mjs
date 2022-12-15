@@ -1,4 +1,8 @@
-import { getResultCardTemplate } from '../constants/template-strings.mjs'
+import {
+  getResultCardTemplate,
+  getApprovedCheckIconSvg,
+  getCopyIconSvg,
+} from '../constants/template-strings.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
@@ -131,6 +135,10 @@ async function run(question) {
     })
     gptxFooterCopyBtn.addEventListener('click', async () => {
       cachedQuestion = await Browser.storage.local.get(question)
+      gptxFooterCopyBtn.innerHTML = getApprovedCheckIconSvg('1.2em', '1.2em', 'green')
+      setTimeout(() => {
+        gptxFooterCopyBtn.innerHTML = getCopyIconSvg('1.2em', '1.2em', 'white')
+      }, 700)
       clipboard.write(cachedQuestion[question]).then(() => {
         console.log('gptx result copied')
       })
