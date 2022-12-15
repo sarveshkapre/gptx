@@ -8,7 +8,7 @@
   font-size: 14px;
   border-radius: 5px;
 }
-.container-fluid.gptx-history-container {
+.container-fluid.gptx-nt-container {
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -61,11 +61,11 @@
 .active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
-#gptx-history-settings-column {
+#gptx-nt-settings-column {
   background-color: #202123;
   color: white;
 }
-.gptx-history-nav {
+.gptx-nt-nav {
   background-color: #292a2d;
   color: white;
 }
@@ -73,7 +73,7 @@
   margin-left: 20px;
   margin-right: 20px;
 }
-#gptx-history-qa-column {
+#gptx-nt-qa-column {
   padding: 0;
   overflow-y: auto;
   height: calc(100vh - 56px);
@@ -87,7 +87,7 @@
 .gptx-settings-buttons:hover {
   background: #343541;
 }
-.row.gptx-history-settings-row {
+.row.gptx-nt-settings-row {
   background: #343541;
 }
 #gptx-snackbar {

@@ -1,4 +1,22 @@
-.gptx-nt-container {
-  margin-top: 30px;
-  margin-bottom: 30px;
+@import "view-history.css";
+
+#gptx-nt-question {
+  background: #343541;
+  color: white;
+  display: inline-block;
+  width: calc(100% - 58px);
+  text-align: left;
+  border: none;
+  outline: none;
+  padding: 15px 15px 15px 30px;
+  margin-right: 5px;
+}
+#gptx-nt-response-body {
+  background-color: #444654;
+  color: white;
+  padding: 30px;
+}
+.gptx-settings-icon {
+  display: inline-block;
+  padding: 0 10px;
 }

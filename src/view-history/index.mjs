@@ -45,7 +45,7 @@ async function main() {
   const gptxClearSelection = document.getElementById('gptx-clear-selection')
   gptxClearSelection.addEventListener('click', async () => {
     Browser.storage.local.remove(selectedQuestions).then(async () => {
-      const parent = document.getElementById('gptx-history-qa-accordian')
+      const parent = document.getElementById('gptx-nt-qa-accordian')
       selectedQuestions = []
       divsToDelete.forEach((div) => {
         parent.removeChild(div)
@@ -80,7 +80,7 @@ async function main() {
   // Display Q & A in DOM
   function updateDOM(cachedData) {
     console.log('gptx cached data length: ', Object.keys(cachedData).length)
-    const parent = document.getElementById('gptx-history-qa-accordian')
+    const parent = document.getElementById('gptx-nt-qa-accordian')
     const markdown = new MarkdownIt()
     if (Object.keys(cachedData).length > 1) {
       Object.keys(cachedData).forEach((key) => {

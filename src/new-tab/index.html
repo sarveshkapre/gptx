@@ -1,20 +1,25 @@
 <html>
   <head>
+    <title>Full View</title>
     <link rel="stylesheet" type="text/css" href="new-tab.css" />
     <!-- <link rel="stylesheet" type="text/css" href="github-markdown.css" /> -->
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
     <script src="new-tab.js" async></script>
   </head>
   <body>
-    <div class="container gptx-nt-container">
-      <div class="row">
-        <div class="col">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title" id="gptx-nt-question"></h5>
-              <div id="gptx-nt-response-body" class="markdown-body card-text" dir="auto"></div>
-            </div>
-          </div>
+    <nav class="navbar gptx-nt-nav">
+      <div class="navbar-brand">
+        <img class="gptx-navbar-brand-icon" height="36" width="36" src="icon48.png" />Full View
+      </div>
+    </nav>
+    <div class="container-fluid gptx-nt-container">
+      <div class="row gptx-nt-settings-row">
+        <div class="col-2" id="gptx-nt-settings-column">
+          <div class="gptx-settings-buttons" id="gptx-copy-qa"></div>
+        </div>
+        <div class="col-10" id="gptx-nt-qa-column">
+          <div id="gptx-nt-question"></div>
+          <div id="gptx-nt-response-body" class="markdown-body card-text" dir="auto"></div>
         </div>
       </div>
     </div>
