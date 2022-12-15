@@ -71,7 +71,7 @@ Browser.runtime.onConnect.addListener((port) => {
     console.log('GPTX: received msg', msg)
     if (msg.GPTX_CREATE_NEW_TAB) {
       Browser.tabs.create({
-        url: 'newTab.html',
+        url: 'new-tab.html',
       })
       questionToNewTab = msg.GPTX_CREATE_NEW_TAB
     } else {

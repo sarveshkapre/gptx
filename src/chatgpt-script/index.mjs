@@ -4,7 +4,7 @@
  * copying only Answers to clipboard
  */
 import clipboard from 'clipboardy'
-import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/templateStrings.mjs'
+import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/template-strings.mjs'
 
 const navElem = document.getElementsByTagName('nav')['0']
 // created copy entire thread button

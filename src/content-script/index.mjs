@@ -1,5 +1,4 @@
-import { getResultCardTemplate } from '../constants/templateStrings.mjs'
-// import { storageCache } from './localStorage.mjs'
+import { getResultCardTemplate } from '../constants/template-strings.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
@@ -76,8 +75,6 @@ async function run(question) {
           gptxFooterRefreshBtn.classList.remove('gptxDisableBtn')
           gptxFooterCopyBtn.classList.remove('gptxDisableBtn')
           gptxFooterNewTabBtn.classList.remove('gptxDisableBtn')
-          // storageCache.setCache(question, previousResponse, 60 * 60)
-          // console.log('GPTX: question answer cached')
           Browser.storage.local
             .set({
               [question]: previousResponse,
@@ -113,7 +110,6 @@ async function run(question) {
      * else - send question to background worker
      */
     let cachedQuestion = await Browser.storage.local.get(question)
-    // let cachedQuestion = storageCache.getCache(question)
     if (Object.keys(cachedQuestion).length > 0) {
       console.log('GPTX: cached result used')
       updateResultDOM(cachedQuestion[question], startTime)
@@ -135,7 +131,6 @@ async function run(question) {
     })
     gptxFooterCopyBtn.addEventListener('click', async () => {
       cachedQuestion = await Browser.storage.local.get(question)
-      // cachedQuestion = storageCache.getCache(question)
       clipboard.write(cachedQuestion[question]).then(() => {
         console.log('gptx result copied')
       })

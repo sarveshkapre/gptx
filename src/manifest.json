@@ -22,7 +22,7 @@
       "matches": ["https://*/search*"],
       "include_globs": ["*.google.*/*"],
       "js": ["content-script.js"],
-      "css": ["bootstrap.min.css", "github-markdown.css", "styles.css", "result_card.css"]
+      "css": ["bootstrap.min.css", "github-markdown.css", "result-card.css"]
     },
     {
       "matches": ["https://chat.openai.com/chat"],

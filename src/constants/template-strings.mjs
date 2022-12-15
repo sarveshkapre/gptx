@@ -32,7 +32,7 @@ export function getApprovedCheckIconSvg(width = '1em', height = '1em', color = '
 
 export function getViewHistoryIcon(width = '1em', height = '1em', color = 'red') {
   return `
-  <svg id="viewHistorySvg" width=${width} height=${height} fill="${color}" viewBox="0 0 22 22">
+  <svg id="view-history-svg" width=${width} height=${height} fill="${color}" viewBox="0 0 22 22">
   <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
   </svg>
   `
@@ -63,13 +63,13 @@ export function getResultCardTemplate(iconColor) {
 
 export function getQADivContentTemplate(question, answer) {
   return `
-  <div class="gptxQACheckbox">
-    <input type="checkbox" class="gptxQACheckboxInput" data-key="${question}">
+  <div class="gptx-qa-checkbox">
+    <input type="checkbox" class="gptx-qa-checkbox-input" data-key="${question}">
   </div>
-  <button class="gptxAccordionButton" type="button">
+  <button class="gptx-accordion-button" type="button">
     ${question}
   </button>
-  <div class="gptxAccordionBody">
+  <div class="gptx-accordion-body">
     ${answer}
   </div>
   `
@@ -77,7 +77,7 @@ export function getQADivContentTemplate(question, answer) {
 
 export function getNoHistoryTemplate() {
   return `
-  <div class="gptxEmptyHistory">
+  <div class="gptx-empty-history">
     Your ChatGPT history is currently empty.
   </div>
   `

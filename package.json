@@ -16,7 +16,6 @@
     "esbuild": "^0.15.17",
     "eventsource-parser": "^0.0.5",
     "expiry-map": "^2.0.0",
-    "localstorage-cache": "^1.0.1",
     "markdown-it": "^13.0.1",
     "punycode": "^2.1.1",
     "uuid": "^9.0.0"

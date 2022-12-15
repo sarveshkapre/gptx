@@ -8,12 +8,12 @@
   font-size: 14px;
   border-radius: 5px;
 }
-.container-fluid.gptxHistoryContainer {
+.container-fluid.gptx-history-container {
   padding: 0;
   margin: 0;
   overflow: hidden;
 }
-.gptxEmptyHistory {
+.gptx-empty-history {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,11 +22,11 @@
   font-style: italic;
   color: #666;
 }
-.gptxQACheckbox {
+.gptx-qa-checkbox {
   padding: 15px;
   display: inline-block;
 }
-.gptxAccordionButton {
+.gptx-accordion-button {
   background: #343541;
   color: white;
   display: inline-block;
@@ -37,17 +37,17 @@
   padding: 15px 15px 15px 5px;
   margin-right: 5px;
 }
-.gptxAccordionHeader {
+.gptx-accordion-header {
   display: flex;
   align-items: center;
 }
-.gptxAccordionBody {
+.gptx-accordion-body {
   background-color: #444654;
   color: white;
   padding: 30px;
   display: none;
 }
-.gptxAccordionButton:after {
+.gptx-accordion-button:after {
   content: '\02795'; /* Unicode character for "plus" sign (+) */
   font-size: 16px;
   color: #c0bfbf;
@@ -61,77 +61,66 @@
 .active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
-#gptxHistorySettingsColumn {
+#gptx-history-settings-column {
   background-color: #202123;
   color: white;
 }
-.gptxHistoryNav {
+.gptx-history-nav {
   background-color: #292a2d;
   color: white;
 }
-.gptxNavbarBrandIcon {
+.gptx-navbar-brand-icon {
   margin-left: 20px;
   margin-right: 20px;
 }
-#gptxHistoryQAColumn {
+#gptx-history-qa-column {
   padding: 0;
   overflow-y: auto;
   height: calc(100vh - 56px);
 }
-.gptxSettingsButtons {
+.gptx-settings-buttons {
   padding: 10;
   margin: 10px 0 10px 10px;
   border-radius: 10px;
   cursor: pointer;
 }
-.gptxSettingsButtons:hover {
+.gptx-settings-buttons:hover {
   background: #343541;
 }
-.row.gptxHistorySettingsRow {
+.row.gptx-history-settings-row {
   background: #343541;
 }
-/* The snackbar - position it at the bottom and in the middle of the screen */
-#gptxSnackbar {
-  visibility: hidden; /* Hidden by default. Visible on click */
-  min-width: 250px; /* Set a default minimum width */
-  margin-left: -125px; /* Divide value of min-width by 2 */
-  background-image: linear-gradient(to right, #6BD383, #3A756E);; /* Black background color */
-  /* background-image:  */
-  color: #fff; /* White text color */
-  text-align: center; /* Centered text */
-  border-radius: 10px; /* Rounded borders */
-  padding: 16px; /* Padding */
-  position: fixed; /* Sit on top of the screen */
-  z-index: 1; /* Add a z-index if needed */
-  left: 50%; /* Center the snackbar */
-  bottom: 30px; /* 30px from the bottom */
+#gptx-snackbar {
+  visibility: hidden;
+  min-width: 250px;
+  margin-left: -125px;
+  background-image: linear-gradient(to right, #6BD383, #3A756E);
+  color: #fff;
+  text-align: center;
+  border-radius: 10px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  left: 50%;
+  bottom: 30px;
 }
-
-/* Show the snackbar when clicking on a button (class added with JavaScript) */
-#gptxSnackbar.show {
-  visibility: visible; /* Show the snackbar */
-  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
-  However, delay the fade out process for 2.5 seconds */
+#gptx-snackbar.show {
+  visibility: visible; 
   -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
   animation: fadein 0.5s, fadeout 0.5s 2.5s;
 }
-
-/* Animations to fade the snackbar in and out */
 @-webkit-keyframes fadein {
   from {bottom: 0; opacity: 0;}
   to {bottom: 30px; opacity: 1;}
 }
-
 @keyframes fadein {
   from {bottom: 0; opacity: 0;}
   to {bottom: 30px; opacity: 1;}
 }
-
 @-webkit-keyframes fadeout {
   from {bottom: 30px; opacity: 1;}
   to {bottom: 0; opacity: 0;}
 }
-
 @keyframes fadeout {
   from {bottom: 30px; opacity: 1;}
   to {bottom: 0; opacity: 0;}
