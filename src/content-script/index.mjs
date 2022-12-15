@@ -141,7 +141,7 @@ async function run(question) {
       `
       setTimeout(() => {
         gptxFooterCopyBtn.innerHTML = `
-        ${getCopyIconSvg('1.2em', '1.2em', 'white')}
+        ${getCopyIconSvg('1.2em', '1.2em', footerBtnsIconSvgColor)}
         <span class="gptx-tooltip-text" id="gptx-tooltip-copy-text">Copy</span>
         `
       }, 700)
