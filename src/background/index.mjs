@@ -20,10 +20,17 @@ async function getAccessToken() {
   return resp.accessToken
 }
 
-async function getAnswer(question, callback) {
+async function getChatGPTResult(port, question) {
   const accessToken = await getAccessToken()
+
+  const controller = new AbortController()
+  port.onDisconnect.addListener(() => {
+    controller.abort()
+  })
+
   await fetchSSE('https://chat.openai.com/backend-api/conversation', {
     method: 'POST',
+    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -46,13 +53,13 @@ async function getAnswer(question, callback) {
     onMessage(message) {
       console.debug('GPTX: sse message', message)
       if (message === '[DONE]') {
-        callback('CHAT_GPTX_ANSWER_END')
+        port.postMessage({ answer: 'CHAT_GPTX_ANSWER_END' })
         return
       }
       const data = JSON.parse(message)
       const text = data.message?.content?.parts?.[0]
       if (text) {
-        callback(text)
+        port.postMessage({ answer: text })
       }
     },
   })
@@ -69,12 +76,12 @@ Browser.runtime.onConnect.addListener((port) => {
       questionToNewTab = msg.GPTX_CREATE_NEW_TAB
     } else {
       try {
-        await getAnswer(msg.question, (answer) => {
-          port.postMessage({ answer })
-        })
+        await getChatGPTResult(port, msg.question)
       } catch (err) {
-        console.error(err)
-        port.postMessage({ error: err.message })
+        if (!(err instanceof DOMException && err.message === 'The user aborted a request.')) {
+          console.error(err)
+          port.postMessage({ error: err.message })
+        }
         cache.delete(KEY_ACCESS_TOKEN)
       }
     }
