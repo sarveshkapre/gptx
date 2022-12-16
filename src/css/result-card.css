@@ -1,0 +1,90 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-refresh-hover: #c0c0c06c;
+    --tooltip-bg-color: #808080;
+    --tooltip-text-color: #F5F5F5;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-refresh-hover: #5f636874;
+    --tooltip-bg-color: #333333;
+    --tooltip-text-color: #F5F5F5;
+  }
+}
+.gptx-card {
+  width: 70%;
+  border-radius: 10px;
+  border-width: "0.2px";
+  padding: 0 10px 5px 10px;
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+#gptx-loading-para {
+  text-align: right;
+  width: 100%;
+  display: inline;
+  margin-bottom: 0px;
+  color: #70757a;
+  font-size: 12px;
+  font-weight: 700;
+}
+#gptx-time-para {
+  text-align: right;
+  font-size: 12px;
+  color: #828282;
+  margin-top: -16px;
+  margin-left: 3px;
+}
+#gptx-card-body {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 225px;
+}
+#gptx-card-footer {
+  display: inline-flex;
+  justify-content: end;
+  width: 100%;
+}
+.gptx-footer-btns {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gptx-footer-btns:hover {
+  background-color: var(--color-refresh-hover);
+}
+.gptx-disable-btn {
+  pointer-events: none;
+  opacity: 0.4;
+}
+.gptx-footer-btns {
+  position: relative;
+}
+.btn.gptx-footer-btns .gptx-tooltip-text {
+  visibility: hidden;
+  width: 100px;
+  top: 110%;
+  left: 50%;
+  margin-left: -50px;
+  background-color: var(--tooltip-bg-color);
+  color: var(--tooltip-text-color);
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  font-size: 12px;
+}
+#gptx-tooltip-copied-text {
+  background-color: rgba(25,135,84, 0.1);
+  color: #198754;
+  border: 1px solid #198754;
+}
+.btn.gptx-footer-btns:hover .gptx-tooltip-text  {
+  visibility: visible;
+}

@@ -1,0 +1,38 @@
+@import "view-history.css";
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gptx-question-bg-color: #343541;
+    --gptx-result-bg-color: #444654;
+    --gptx-text-color: white;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --gptx-question-bg-color: #ffffff;
+    --gptx-result-bg-color: #f7f7f8;
+    --gptx-text-color: black;
+  }
+}
+
+#gptx-nt-question {
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+  display: inline-block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,.1);
+  outline: none;
+  padding: 15px 15px 15px 30px;
+  margin-right: 65px;
+}
+#gptx-nt-response-body {
+  background-color: var(--gptx-result-bg-color);
+  color: var(--gptx-text-color);
+  padding: 30px;
+}
+.gptx-settings-icon {
+  display: inline-block;
+  padding: 0 10px;
+}
