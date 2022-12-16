@@ -6,6 +6,9 @@ import ExpiryMap from 'expiry-map'
 const KEY_ACCESS_TOKEN = 'accessToken'
 const cache = new ExpiryMap(10 * 1000)
 
+
+// Async function that retrieves an access token from a specified URL and stores it in a cache. If the fetch request fails or the response does not contain an accessToken property, it throws an error with the message "UNAUTHORIZED". Otherwise, it stores the accessToken in the cache and returns it.
+
 async function getAccessToken() {
   if (cache.get(KEY_ACCESS_TOKEN)) {
     return cache.get(KEY_ACCESS_TOKEN)
@@ -19,6 +22,8 @@ async function getAccessToken() {
   cache.set(KEY_ACCESS_TOKEN, resp.accessToken)
   return resp.accessToken
 }
+
+// Async function that sends a POST request to a specified URL using the fetchSSE function and processes the response using an event source parser. It also listens for messages from a specified port and posts messages to the port based on the response from the server and the state of the port.
 
 async function getChatGPTResult(port, question) {
   const accessToken = await getAccessToken()
@@ -65,6 +70,8 @@ async function getChatGPTResult(port, question) {
   })
 }
 
+// Event listener that listens for connections to a port and sets up a message listener for that port. When a message is received, it either creates a new tab or calls the getChatGPTResult function with the message and the port as arguments.
+
 let questionToNewTab
 Browser.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (msg) => {
@@ -87,6 +94,8 @@ Browser.runtime.onConnect.addListener((port) => {
     }
   })
 })
+
+// Event listener that listens for messages from other scripts or extensions and sends a response with the question from questionToNewTab.
 
 Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getQuestion') {
