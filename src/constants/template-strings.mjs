@@ -41,11 +41,43 @@ export function getViewHistoryIcon(width = '1em', height = '1em', color = 'red')
 export function getResultCardTemplate(iconColor) {
   return `
   <div id="gptx-card-header">
-    <span id="gptx-loading-para">Loading results from ChatGPT...</span>
-    <span id="gptx-time-para"></span>
+    <div class="gptx-header-row">
+      <div class="gptx-brand">GPTx</div>
+      <div class="gptx-status">
+        <span id="gptx-loading-para">Ready</span>
+        <span id="gptx-time-para"></span>
+      </div>
+    </div>
+    <div class="gptx-controls">
+      <div class="gptx-control-group">
+        <span class="gptx-control-label">Mode</span>
+        <div class="gptx-chip-group" role="group" aria-label="Answer mode">
+          <button class="gptx-chip" data-gptx-mode="summary">Summary</button>
+          <button class="gptx-chip" data-gptx-mode="balanced">Balanced</button>
+          <button class="gptx-chip" data-gptx-mode="deep">Deep</button>
+        </div>
+      </div>
+      <div class="gptx-control-group">
+        <span class="gptx-control-label">Format</span>
+        <div class="gptx-chip-group" role="group" aria-label="Answer format">
+          <button class="gptx-chip" data-gptx-format="bullets">Bullets</button>
+          <button class="gptx-chip" data-gptx-format="steps">Steps</button>
+          <button class="gptx-chip" data-gptx-format="table">Table</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="gptx-card-body">
+    <div id="gptx-question" class="gptx-question"></div>
     <div id="gptx-response-body" class="markdown-body" dir="auto"></div>
+  </div>
+  <div id="gptx-followup" class="gptx-followup">
+    <div class="gptx-followup-label">Ask a follow-up</div>
+    <div class="gptx-followup-row">
+      <textarea id="gptx-followup-input" rows="1" placeholder="Refine the answer (press / to focus)"></textarea>
+      <button class="btn gptx-followup-btn" id="gptx-followup-btn">Ask</button>
+    </div>
+    <div class="gptx-followup-hint">Tip: / to focus • Enter to ask • Shift+Enter for new line</div>
   </div>
   <div id="gptx-card-footer">
     <div class="btn gptx-footer-btns" id="gptx-footer-new-tab-btn">
@@ -58,20 +90,21 @@ export function getResultCardTemplate(iconColor) {
     </div>
     <div class="btn gptx-footer-btns" id="gptx-footer-refresh-btn">
       ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}
-      <span class="gptx-tooltip-text">Refresh</span>
+      <span class="gptx-tooltip-text">Regenerate</span>
     </div>
   </div>
   `
 }
 
-export function getQADivContentTemplate(question, answer) {
+export function getQADivContentTemplate(storageKey, question, answer, meta = '') {
   return `
   <div class="gptx-qa-checkbox">
-    <input type="checkbox" class="gptx-qa-checkbox-input" data-key="${question}">
+    <input type="checkbox" class="gptx-qa-checkbox-input" data-key="${storageKey}">
   </div>
   <button class="gptx-accordion-button" type="button">
     ${question}
   </button>
+  ${meta ? `<div class="gptx-qa-meta">${meta}</div>` : ''}
   <div class="gptx-accordion-body markdown-body">
     ${answer}
   </div>
@@ -81,7 +114,8 @@ export function getQADivContentTemplate(question, answer) {
 export function getNoHistoryTemplate() {
   return `
   <div class="gptx-empty-history">
-    Your ChatGPT history is currently empty.
+    <div class="gptx-empty-title">No GPTx history yet</div>
+    <div class="gptx-empty-subtitle">Search on Google to generate answers.</div>
   </div>
   `
 }

@@ -26,6 +26,15 @@
   outline: none;
   padding: 15px 15px 15px 30px;
   margin-right: 65px;
+  font-weight: 600;
+}
+#gptx-nt-meta {
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+  opacity: 0.7;
+  font-size: 12px;
+  padding: 0 15px 12px 30px;
+  border-bottom: 1px solid rgba(0,0,0,.1);
 }
 #gptx-nt-response-body {
   background-color: var(--gptx-result-bg-color);

@@ -99,6 +99,6 @@ Browser.runtime.onConnect.addListener((port) => {
 
 Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getQuestion') {
-    sendResponse({ question: questionToNewTab })
+    sendResponse({ cacheKey: questionToNewTab })
   }
 })

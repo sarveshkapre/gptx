@@ -44,17 +44,30 @@ gptxCopyBtn.addEventListener('click', () => {
 
 let question = null
 const markdown = new MarkdownIt()
+const metaElem = document.getElementById('gptx-nt-meta')
 
 // send getQuestion request to background.js
 Browser.runtime.sendMessage({ action: 'getQuestion' }).then((response) => {
-  question = response.question
+  if (!response?.cacheKey) {
+    updateDOM('No cached answer found', 'Please regenerate this answer from Google search.')
+    metaElem.textContent = ''
+    return
+  }
+  question = response.cacheKey
   getQuestionsAnswer()
 })
 
 // get result stored in local storage and update the DOM
 async function getQuestionsAnswer() {
   const answer = await Browser.storage.local.get(question)
-  updateDOM(question, answer[question])
+  const entry = normalizeEntry(question, answer[question])
+  if (!entry) {
+    updateDOM('No cached answer found', 'Please regenerate this answer from Google search.')
+    metaElem.textContent = ''
+    return
+  }
+  updateDOM(entry.question, entry.answer)
+  metaElem.textContent = formatMeta(entry)
 }
 
 function updateDOM(question, answer) {
@@ -62,4 +75,46 @@ function updateDOM(question, answer) {
   const gptxNTQuestion = document.getElementById('gptx-nt-question')
   gptxNTQuestion.innerHTML = question
   gptxNTResponseBody.innerHTML = markdown.render(answer)
+}
+
+function normalizeEntry(key, value) {
+  if (!value) return null
+  if (typeof value === 'string') {
+    return {
+      question: key,
+      answer: value,
+      mode: 'legacy',
+      format: 'legacy',
+      createdAt: null,
+    }
+  }
+  if (typeof value === 'object' && value.answer) {
+    return {
+      question: value.question || key,
+      answer: value.answer,
+      mode: value.mode,
+      format: value.format,
+      createdAt: value.createdAt,
+    }
+  }
+  return null
+}
+
+function formatMeta(entry) {
+  const parts = []
+  if (entry.mode && entry.mode !== 'legacy') {
+    parts.push(capitalize(entry.mode))
+  }
+  if (entry.format && entry.format !== 'legacy') {
+    parts.push(capitalize(entry.format))
+  }
+  if (entry.createdAt) {
+    parts.push(new Date(entry.createdAt).toLocaleString())
+  }
+  return parts.join(' · ')
+}
+
+function capitalize(value) {
+  if (!value) return ''
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }

@@ -3,6 +3,25 @@ import Browser from 'webextension-polyfill'
 
 main()
 
+const DEFAULT_PREFERENCES = {
+  mode: 'summary',
+  format: 'bullets',
+}
+
+async function loadPreferences() {
+  const stored = await Browser.storage.local.get('gptxPreferences')
+  return {
+    ...DEFAULT_PREFERENCES,
+    ...(stored.gptxPreferences || {}),
+  }
+}
+
+async function savePreferences(preferences) {
+  await Browser.storage.local.set({
+    gptxPreferences: preferences,
+  })
+}
+
 async function main() {
   // get extension enabled value from local storage to mark checkbox initially
   let isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
@@ -62,5 +81,22 @@ async function main() {
           console.log('gptx extension disabled')
         })
     }
+  })
+
+  // set default preferences
+  const preferences = await loadPreferences()
+  const modeSelect = document.getElementById('gptx-default-mode')
+  const formatSelect = document.getElementById('gptx-default-format')
+  modeSelect.value = preferences.mode
+  formatSelect.value = preferences.format
+
+  modeSelect.addEventListener('change', async () => {
+    preferences.mode = modeSelect.value
+    await savePreferences(preferences)
+  })
+
+  formatSelect.addEventListener('change', async () => {
+    preferences.format = formatSelect.value
+    await savePreferences(preferences)
   })
 }

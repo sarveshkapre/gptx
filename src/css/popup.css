@@ -16,9 +16,9 @@
 }
 
 .gptx-popup-body {
-  --popup-body-height: 170px;
+  --popup-body-height: 270px;
   height: var(--popup-body-height);
-  width: 180px;
+  width: 220px;
 }
 .container.gptx-popup-container {
   height: var(--popup-body-height);
@@ -53,6 +53,41 @@
   padding-bottom: 5px;
   font-weight: 700;
   font-size: 14px
+}
+.gptx-preferences {
+  margin-top: 8px;
+}
+.gptx-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  gap: 8px;
+}
+.gptx-setting-label {
+  font-size: 12px;
+  color: var(--gptx-text-color);
+}
+.gptx-select {
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 8px;
+  background: var(--gptx-popup-header-bg-color);
+  color: var(--gptx-text-color);
+  padding: 3px 6px;
+  font-size: 12px;
+}
+.gptx-select:focus {
+  outline: 2px solid rgba(26, 115, 232, 0.25);
+  border-color: #1a73e8;
+}
+.gptx-shortcuts {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--gptx-text-color);
+  opacity: 0.7;
+}
+.gptx-shortcuts span {
+  font-weight: 600;
 }
 .gptx-switch {
   padding-top: 15px;
