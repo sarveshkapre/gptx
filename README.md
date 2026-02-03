@@ -1,6 +1,6 @@
 ## GPTX
 
-A Chrome extension, to allow users to access the results of ChatGPT directly in their Google usage. 
+ChatGPT-powered Chrome extension that adds AI answers to Google Search, with history, copy, and “open in new tab”.
 <br>
 
 ### Vision
@@ -38,6 +38,11 @@ To leverage the power of the ChatGPT language model to provide users with a more
     ✅ View ChatGPT browsing history
     ✅ Clear entire ChatGPT browsing history or only selected data with just one click
     ✅ Easily Copy entire thread or Copy all answers on ChatGPT official website
+    ✅ Answer modes (Summary / Balanced / Deep) and formats (Bullets / Steps / Table)
+    ✅ Follow-up questions with keyboard shortcuts
+    ✅ Security badges on Google results (phishing / sensitive / tracking / HTTP)
+    ✅ Tracking-parameter stripping and HTTPS upgrade on click
+    ✅ Security Center with allowlist, blocklist, and reports
 <br>
 
 ### User Installation
@@ -49,7 +54,7 @@ https://chrome.google.com/webstore/detail/gptx/ljmohcbobmmelbiijhpigdmmoboabjcl
 
 1. Clone or download this repository
 2. Install dependencies using `npm install`
-3. Build extension using `npm build`
+3. Build extension using `npm run build`
 
 For installing in Google Chrome
 
@@ -64,6 +69,15 @@ For installing in Google Chrome
 1. Click on the extension icon in the top right corner of the browser
 2. Customize your settings by selecting the desired options and inputting any necessary information
 3. The extension will now be active and will automatically perform the chosen functions while browsing
+
+### Security Center
+
+Open the popup → “Security center” to configure:
+- Warn or block risky links
+- Strip tracking params / upgrade HTTPS
+- Hide ads on Google results
+- Manage allowlist / blocklist
+- View or export reported sites
 
 ### Resources
 
