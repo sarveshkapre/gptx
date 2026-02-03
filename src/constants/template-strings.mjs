@@ -66,6 +66,7 @@ export function getResultCardTemplate(iconColor) {
         </div>
       </div>
     </div>
+    <div id="gptx-security-banner" class="gptx-security-banner"></div>
   </div>
   <div id="gptx-card-body">
     <div id="gptx-question" class="gptx-question"></div>

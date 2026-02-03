@@ -12,6 +12,11 @@ const DEFAULT_PREFERENCES = {
   format: 'bullets',
 }
 
+const DEFAULT_SECURITY = {
+  enabled: true,
+  allowlist: [],
+}
+
 const MODE_CONFIG = {
   summary: {
     label: 'Summary',
@@ -43,6 +48,44 @@ const FORMAT_CONFIG = {
   },
 }
 
+const SECURITY_CONFIG = {
+  suspiciousTlds: ['zip', 'mov', 'xyz', 'top', 'gq', 'cam', 'work', 'support', 'click', 'rest'],
+  brands: [
+    'google',
+    'apple',
+    'microsoft',
+    'amazon',
+    'paypal',
+    'netflix',
+    'github',
+    'linkedin',
+    'facebook',
+    'instagram',
+    'twitter',
+    'x',
+    'openai',
+    'coinbase',
+    'binance',
+    'chase',
+    'bankofamerica',
+    'wellsfargo',
+    'citibank',
+  ],
+  sensitiveKeywords: [
+    'login',
+    'signin',
+    'sign in',
+    'password',
+    'verify',
+    'bank',
+    'wallet',
+    'crypto',
+    'payment',
+    'checkout',
+  ],
+  multiPartTlds: ['co.uk', 'org.uk', 'ac.uk', 'co.jp', 'com.au', 'net.au'],
+}
+
 const searchInput = document.getElementsByName('q')[0]
 if (searchInput && searchInput.value) {
   const startParam = new URL(location.href).searchParams.get('start') || '0'
@@ -62,6 +105,26 @@ async function loadPreferences() {
 async function savePreferences(preferences) {
   await Browser.storage.local.set({
     gptxPreferences: preferences,
+  })
+}
+
+async function loadSecuritySettings() {
+  const stored = await Browser.storage.local.get(['gptxSecurityEnabled', 'gptxSecurityAllowlist'])
+  const enabled =
+    stored.gptxSecurityEnabled === undefined ? DEFAULT_SECURITY.enabled : stored.gptxSecurityEnabled
+  const allowlist = stored.gptxSecurityAllowlist || DEFAULT_SECURITY.allowlist
+  if (stored.gptxSecurityEnabled === undefined) {
+    await Browser.storage.local.set({ gptxSecurityEnabled: enabled })
+  }
+  if (!stored.gptxSecurityAllowlist) {
+    await Browser.storage.local.set({ gptxSecurityAllowlist: allowlist })
+  }
+  return { ...DEFAULT_SECURITY, enabled, allowlist }
+}
+
+async function saveSecurityAllowlist(allowlist) {
+  await Browser.storage.local.set({
+    gptxSecurityAllowlist: allowlist,
   })
 }
 
@@ -115,6 +178,157 @@ function normalizeEntry(key, value) {
   return null
 }
 
+function normalizeDomain(domain) {
+  return domain.replace(/^www\./, '').toLowerCase()
+}
+
+function getRootDomain(hostname) {
+  const normalized = normalizeDomain(hostname)
+  const parts = normalized.split('.')
+  if (parts.length <= 2) return normalized
+  const lastTwo = parts.slice(-2).join('.')
+  const lastThree = parts.slice(-3).join('.')
+  if (SECURITY_CONFIG.multiPartTlds.includes(lastTwo)) {
+    return parts.slice(-3).join('.')
+  }
+  if (SECURITY_CONFIG.multiPartTlds.includes(lastThree)) {
+    return parts.slice(-4).join('.')
+  }
+  return lastTwo
+}
+
+function getSecondLevelDomain(hostname) {
+  const root = getRootDomain(hostname)
+  return root.split('.').slice(0, -1).join('.') || root
+}
+
+function levenshtein(a, b) {
+  const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0))
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost,
+      )
+    }
+  }
+  return matrix[a.length][b.length]
+}
+
+function extractTargetUrl(href) {
+  if (!href) return null
+  try {
+    const url = new URL(href, window.location.origin)
+    if (url.hostname.includes('google.') && url.pathname === '/url') {
+      return url.searchParams.get('q') || url.searchParams.get('url')
+    }
+    return url.href
+  } catch {
+    return null
+  }
+}
+
+function getSearchResultLinks() {
+  const links = []
+  document.querySelectorAll('a h3').forEach((heading) => {
+    const anchor = heading.closest('a')
+    if (!anchor) return
+    const targetUrl = extractTargetUrl(anchor.getAttribute('href'))
+    if (!targetUrl || !targetUrl.startsWith('http')) return
+    try {
+      const parsed = new URL(targetUrl)
+      links.push({
+        anchor,
+        heading,
+        url: targetUrl,
+        hostname: parsed.hostname,
+      })
+    } catch {
+      return
+    }
+  })
+  return links
+}
+
+function assessDomainRisk(hostname, query, allowlist) {
+  const normalized = normalizeDomain(hostname)
+  if (allowlist.includes(normalized)) {
+    return { score: 0, reasons: [], sensitive: false }
+  }
+  const sld = getSecondLevelDomain(normalized)
+  let score = 0
+  const reasons = []
+  const tld = normalized.split('.').slice(-1)[0]
+  if (normalized.includes('xn--')) {
+    score += 3
+    reasons.push('Uses punycode (possible lookalike)')
+  }
+  if (SECURITY_CONFIG.suspiciousTlds.includes(tld)) {
+    score += 2
+    reasons.push(`Unusual TLD (.${tld})`)
+  }
+  if (sld.includes('-') || /\d/.test(sld)) {
+    score += 1
+    reasons.push('Contains hyphens or digits')
+  }
+  SECURITY_CONFIG.brands.forEach((brand) => {
+    if (sld === brand) return
+    if (sld.includes(brand)) {
+      score += 2
+      reasons.push(`Includes brand name (${brand})`)
+      return
+    }
+    if (levenshtein(sld, brand) <= 1) {
+      score += 3
+      reasons.push(`Looks like ${brand}`)
+    }
+  })
+  const sensitive = SECURITY_CONFIG.sensitiveKeywords.some((keyword) =>
+    query.toLowerCase().includes(keyword),
+  )
+  return { score, reasons, sensitive }
+}
+
+function getRiskLevel(score) {
+  if (score >= 5) return 'high'
+  if (score >= 3) return 'review'
+  return 'low'
+}
+
+function createBadge(text, className) {
+  const badge = document.createElement('span')
+  badge.className = `gptx-security-badge ${className}`
+  badge.textContent = text
+  return badge
+}
+
+function ensureModal() {
+  let modal = document.getElementById('gptx-security-modal')
+  if (modal) return modal
+  modal = document.createElement('div')
+  modal.id = 'gptx-security-modal'
+  modal.className = 'gptx-security-modal'
+  modal.innerHTML = `
+    <div class="gptx-security-modal-backdrop"></div>
+    <div class="gptx-security-modal-card">
+      <div class="gptx-security-modal-title">Potential phishing risk</div>
+      <div class="gptx-security-modal-url"></div>
+      <ul class="gptx-security-modal-reasons"></ul>
+      <div class="gptx-security-modal-actions">
+        <button class="gptx-security-btn" id="gptx-security-cancel">Cancel</button>
+        <button class="gptx-security-btn danger" id="gptx-security-allow">Always allow</button>
+        <button class="gptx-security-btn primary" id="gptx-security-continue">Continue</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(modal)
+  return modal
+}
+
 async function run(baseQuestion) {
   const isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
   let gptxExtensionEnabled = isEnabledObj.gptxExtensionEnabled
@@ -157,6 +371,7 @@ async function run(baseQuestion) {
   const gptxTimeParaElem = document.getElementById('gptx-time-para')
   const gptxResponseBodyElem = document.getElementById('gptx-response-body')
   const gptxQuestionElem = document.getElementById('gptx-question')
+  const gptxSecurityBannerElem = document.getElementById('gptx-security-banner')
   const gptxFooterRefreshBtn = document.getElementById('gptx-footer-refresh-btn')
   const gptxFooterCopyBtn = document.getElementById('gptx-footer-copy-btn')
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
@@ -164,8 +379,10 @@ async function run(baseQuestion) {
   const gptxFollowupBtn = document.getElementById('gptx-followup-btn')
 
   let preferences = await loadPreferences()
+  let securitySettings = await loadSecuritySettings()
   let activeRequest = null
   let previousResponse = ''
+  const riskMap = new WeakMap()
 
   const markdown = new MarkdownIt()
 
@@ -198,6 +415,17 @@ async function run(baseQuestion) {
     gptxResponseBodyElem.innerHTML = `<div class="gptx-response-placeholder${
       isError ? ' is-error' : ''
     }">${message}</div>`
+  }
+
+  function setSecurityBanner(message, variant = 'info') {
+    if (!gptxSecurityBannerElem) return
+    if (!message) {
+      gptxSecurityBannerElem.className = 'gptx-security-banner'
+      gptxSecurityBannerElem.textContent = ''
+      return
+    }
+    gptxSecurityBannerElem.textContent = message
+    gptxSecurityBannerElem.className = `gptx-security-banner is-visible is-${variant}`
   }
 
   function applyPreferencesToUI() {
@@ -244,9 +472,36 @@ async function run(baseQuestion) {
       setButtonsDisabled(false)
       setFollowupDisabled(false)
       setStatus('Cached answer')
-    } else {
-      await requestAnswer({ prompt, displayQuestion, cacheKey })
+      return
     }
+    const legacyQuestion = await Browser.storage.local.get(displayQuestion)
+    const legacyEntry = normalizeEntry(displayQuestion, legacyQuestion[displayQuestion])
+    if (legacyEntry) {
+      setQuestion(displayQuestion)
+      previousResponse = legacyEntry.answer
+      activeRequest = {
+        prompt,
+        displayQuestion,
+        cacheKey,
+        preferences: { ...preferences },
+        startTime: performance.now(),
+      }
+      updateResultDOM(legacyEntry.answer, activeRequest.startTime)
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('Cached answer')
+      await Browser.storage.local.set({
+        [cacheKey]: {
+          question: displayQuestion,
+          answer: legacyEntry.answer,
+          mode: preferences.mode,
+          format: preferences.format,
+          createdAt: legacyEntry.createdAt || Date.now(),
+        },
+      })
+      return
+    }
+    await requestAnswer({ prompt, displayQuestion, cacheKey })
   }
 
   function updateResultDOM(text, startTime) {
@@ -396,6 +651,109 @@ async function run(baseQuestion) {
   attachChipListeners()
   setFollowupDisabled(true)
   setButtonsDisabled(true)
+
+  if (securitySettings.enabled) {
+    const results = getSearchResultLinks()
+    let riskyCount = 0
+    let sensitiveCount = 0
+    const allowlist = securitySettings.allowlist.map(normalizeDomain)
+    results.forEach((result) => {
+      const assessment = assessDomainRisk(result.hostname, baseQuestion, allowlist)
+      const level = getRiskLevel(assessment.score)
+      if (level !== 'low') {
+        riskyCount += 1
+        riskMap.set(result.anchor, {
+          url: result.url,
+          domain: normalizeDomain(result.hostname),
+          reasons: assessment.reasons,
+          level,
+        })
+        if (result.heading && !result.heading.querySelector('.gptx-security-badge')) {
+          const badgeText = level === 'high' ? 'High risk' : 'Review'
+          const badgeClass = level === 'high' ? 'gptx-risk-high' : 'gptx-risk-review'
+          result.heading.appendChild(createBadge(badgeText, badgeClass))
+        }
+      }
+      if (assessment.sensitive) {
+        sensitiveCount += 1
+        if (result.heading && !result.heading.querySelector('.gptx-risk-sensitive')) {
+          result.heading.appendChild(createBadge('Sensitive', 'gptx-risk-sensitive'))
+        }
+      }
+    })
+
+    if (riskyCount > 0) {
+      setSecurityBanner(
+        `${riskyCount} result${riskyCount > 1 ? 's' : ''} look risky. We’ll warn before you visit.`,
+        'warn',
+      )
+    } else if (sensitiveCount > 0) {
+      setSecurityBanner(
+        `Sensitive search detected. Double‑check URLs before signing in.`,
+        'info',
+      )
+    } else {
+      setSecurityBanner('No obvious risks detected in top results.', 'info')
+    }
+
+    const modal = ensureModal()
+    const modalUrl = modal.querySelector('.gptx-security-modal-url')
+    const modalReasons = modal.querySelector('.gptx-security-modal-reasons')
+    const cancelBtn = modal.querySelector('#gptx-security-cancel')
+    const allowBtn = modal.querySelector('#gptx-security-allow')
+    const continueBtn = modal.querySelector('#gptx-security-continue')
+
+    let pendingNavigation = null
+    let pendingDomain = null
+
+    const closeModal = () => {
+      modal.classList.remove('is-visible')
+      pendingNavigation = null
+      pendingDomain = null
+    }
+
+    cancelBtn.addEventListener('click', closeModal)
+    modal.querySelector('.gptx-security-modal-backdrop').addEventListener('click', closeModal)
+
+    allowBtn.addEventListener('click', async () => {
+      if (pendingDomain) {
+        const updatedAllowlist = Array.from(
+          new Set([...(securitySettings.allowlist || []), pendingDomain]),
+        )
+        securitySettings.allowlist = updatedAllowlist
+        await saveSecurityAllowlist(updatedAllowlist)
+      }
+      if (pendingNavigation) {
+        window.location.href = pendingNavigation
+      }
+      closeModal()
+    })
+
+    continueBtn.addEventListener('click', () => {
+      if (pendingNavigation) {
+        window.location.href = pendingNavigation
+      }
+      closeModal()
+    })
+
+    results.forEach((result) => {
+      result.anchor.addEventListener('click', (event) => {
+        const riskInfo = riskMap.get(result.anchor)
+        if (!riskInfo) return
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1) {
+          return
+        }
+        event.preventDefault()
+        pendingNavigation = riskInfo.url
+        pendingDomain = riskInfo.domain
+        modalUrl.textContent = riskInfo.url
+        modalReasons.innerHTML = riskInfo.reasons.map((reason) => `<li>${reason}</li>`).join('')
+        modal.classList.add('is-visible')
+      })
+    })
+  } else {
+    setSecurityBanner('Security alerts are paused.', 'info')
+  }
 
   const initialPrompt = buildPrompt({ question: baseQuestion, preferences })
   const initialCacheKey = buildCacheKey(baseQuestion, preferences)

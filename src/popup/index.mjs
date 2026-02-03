@@ -83,6 +83,31 @@ async function main() {
     }
   })
 
+  // security toggle
+  let securityEnabledObj = await Browser.storage.local.get('gptxSecurityEnabled')
+  let securityEnabled
+  if (securityEnabledObj.gptxSecurityEnabled === undefined) {
+    await Browser.storage.local.set({
+      gptxSecurityEnabled: true,
+    })
+    securityEnabled = true
+  } else {
+    securityEnabled = securityEnabledObj.gptxSecurityEnabled
+  }
+  const gptxSecurityCheck = document.getElementById('gptx-security-switch')
+  const gptxSecurityLabel = document.getElementById('gptx-security-label')
+  gptxSecurityCheck.checked = securityEnabled
+  gptxSecurityLabel.innerHTML = securityEnabled ? 'Security on' : 'Security off'
+  gptxSecurityCheck.addEventListener('change', function () {
+    Browser.storage.local
+      .set({
+        gptxSecurityEnabled: this.checked,
+      })
+      .then(() => {
+        gptxSecurityLabel.innerHTML = this.checked ? 'Security on' : 'Security off'
+      })
+  })
+
   // set default preferences
   const preferences = await loadPreferences()
   const modeSelect = document.getElementById('gptx-default-mode')

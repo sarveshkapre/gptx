@@ -5,7 +5,12 @@ import { getQADivContentTemplate, getNoHistoryTemplate } from '../constants/temp
 import Browser from 'webextension-polyfill'
 import MarkdownIt from 'markdown-it'
 
-const STORAGE_KEYS_TO_IGNORE = new Set(['gptxExtensionEnabled', 'gptxPreferences'])
+const STORAGE_KEYS_TO_IGNORE = new Set([
+  'gptxExtensionEnabled',
+  'gptxPreferences',
+  'gptxSecurityEnabled',
+  'gptxSecurityAllowlist',
+])
 const markdown = new MarkdownIt()
 
 main()
