@@ -25,6 +25,9 @@ const elements = {
   reports: document.getElementById('gptx-sec-reports'),
   copyReports: document.getElementById('gptx-sec-copy-reports'),
   clearReports: document.getElementById('gptx-sec-clear-reports'),
+  events: document.getElementById('gptx-sec-events'),
+  copyEvents: document.getElementById('gptx-sec-copy-events'),
+  clearEvents: document.getElementById('gptx-sec-clear-events'),
 }
 
 main()
@@ -36,6 +39,7 @@ async function main() {
     'gptxSecurityAllowlist',
     'gptxSecurityBlocklist',
     'gptxSecurityReports',
+    'gptxSecurityEvents',
   ])
   const enabled =
     stored.gptxSecurityEnabled === undefined ? true : stored.gptxSecurityEnabled
@@ -77,6 +81,8 @@ async function main() {
 
   const reports = stored.gptxSecurityReports || []
   renderReports(reports)
+  const events = stored.gptxSecurityEvents || []
+  renderEvents(events)
 
   elements.copyReports.addEventListener('click', async () => {
     const latest = await Browser.storage.local.get('gptxSecurityReports')
@@ -88,6 +94,18 @@ async function main() {
   elements.clearReports.addEventListener('click', async () => {
     await Browser.storage.local.set({ gptxSecurityReports: [] })
     renderReports([])
+  })
+
+  elements.copyEvents.addEventListener('click', async () => {
+    const latest = await Browser.storage.local.get('gptxSecurityEvents')
+    await navigator.clipboard.writeText(
+      JSON.stringify(latest.gptxSecurityEvents || [], null, 2),
+    )
+  })
+
+  elements.clearEvents.addEventListener('click', async () => {
+    await Browser.storage.local.set({ gptxSecurityEvents: [] })
+    renderEvents([])
   })
 }
 
@@ -115,5 +133,25 @@ function renderReports(reports) {
       <div>${(report.reasons || []).join(' · ')}</div>
     `
     elements.reports.appendChild(div)
+  })
+}
+
+function renderEvents(events) {
+  elements.events.innerHTML = ''
+  if (!events.length) {
+    elements.events.innerHTML = '<div class="gptx-empty-history">No alerts yet.</div>'
+    return
+  }
+  events.forEach((event) => {
+    const div = document.createElement('div')
+    div.className = 'gptx-sec-event'
+    const time = event.timestamp ? new Date(event.timestamp).toLocaleString() : 'Unknown time'
+    div.innerHTML = `
+      <div class="gptx-sec-report-title">${event.action || event.type}</div>
+      <div class="gptx-sec-report-meta">${event.level || 'review'} · ${time}</div>
+      <div>${event.url || ''}</div>
+      <div>${event.domain || ''}</div>
+    `
+    elements.events.appendChild(div)
   })
 }

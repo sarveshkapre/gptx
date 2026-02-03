@@ -91,6 +91,15 @@
   color: var(--gptx-text-color);
   font-size: 12px;
 }
+.gptx-sec-event {
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.1);
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+  font-size: 12px;
+}
 .gptx-sec-report-title {
   font-weight: 600;
   margin-bottom: 4px;

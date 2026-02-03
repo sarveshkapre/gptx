@@ -42,7 +42,7 @@ To leverage the power of the ChatGPT language model to provide users with a more
     ✅ Follow-up questions with keyboard shortcuts
     ✅ Security badges on Google results (phishing / sensitive / tracking / HTTP)
     ✅ Tracking-parameter stripping and HTTPS upgrade on click
-    ✅ Security Center with allowlist, blocklist, and reports
+    ✅ Security Center with allowlist, blocklist, reports, and alert history
 <br>
 
 ### User Installation

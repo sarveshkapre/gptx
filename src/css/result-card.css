@@ -226,6 +226,16 @@
   border-color: rgba(26, 115, 232, 0.35);
   background: rgba(26, 115, 232, 0.08);
 }
+.gptx-security-link {
+  margin-left: 8px;
+  border: none;
+  background: transparent;
+  color: var(--gptx-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
 .gptx-security-badge {
   display: inline-flex;
   align-items: center;

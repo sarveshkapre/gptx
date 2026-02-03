@@ -502,6 +502,15 @@ async function storeSecurityReport(report) {
   })
 }
 
+async function storeSecurityEvent(event) {
+  const stored = await Browser.storage.local.get('gptxSecurityEvents')
+  const events = stored.gptxSecurityEvents || []
+  events.unshift(event)
+  await Browser.storage.local.set({
+    gptxSecurityEvents: events.slice(0, 200),
+  })
+}
+
 async function run(baseQuestion) {
   const isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
   let gptxExtensionEnabled = isEnabledObj.gptxExtensionEnabled
@@ -550,6 +559,7 @@ async function run(baseQuestion) {
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
   const gptxFollowupInput = document.getElementById('gptx-followup-input')
   const gptxFollowupBtn = document.getElementById('gptx-followup-btn')
+  const securityCenterUrl = Browser.runtime.getURL('security-center.html')
 
   let preferences = await loadPreferences()
   let securitySettings = await loadSecuritySettings()
@@ -591,14 +601,24 @@ async function run(baseQuestion) {
     }">${message}</div>`
   }
 
-  function setSecurityBanner(message, variant = 'info') {
+  function setSecurityBanner(message, variant = 'info', withLink = false) {
     if (!gptxSecurityBannerElem) return
     if (!message) {
       gptxSecurityBannerElem.className = 'gptx-security-banner'
       gptxSecurityBannerElem.textContent = ''
       return
     }
-    gptxSecurityBannerElem.textContent = message
+    if (withLink) {
+      gptxSecurityBannerElem.innerHTML = `${message} <button class="gptx-security-link" id="gptx-security-center-link">Security center</button>`
+      const link = gptxSecurityBannerElem.querySelector('#gptx-security-center-link')
+      if (link) {
+        link.addEventListener('click', () => {
+          window.open(securityCenterUrl, '_blank')
+        })
+      }
+    } else {
+      gptxSecurityBannerElem.textContent = message
+    }
     gptxSecurityBannerElem.className = `gptx-security-banner is-visible is-${variant}`
   }
 
@@ -892,13 +912,18 @@ async function run(baseQuestion) {
       setSecurityBanner(
         `${riskyCount} result${riskyCount > 1 ? 's' : ''} look risky. We’ll warn before you visit.`,
         'warn',
+        true,
       )
     } else if (settings.sensitiveAlerts && sensitiveCount > 0) {
-      setSecurityBanner('Sensitive search detected. Double‑check URLs before signing in.', 'info')
+      setSecurityBanner(
+        'Sensitive search detected. Double‑check URLs before signing in.',
+        'info',
+        true,
+      )
     } else if (hasCleaning) {
-      setSecurityBanner('We’ll clean tracking links and upgrade insecure URLs.', 'info')
+      setSecurityBanner('We’ll clean tracking links and upgrade insecure URLs.', 'info', true)
     } else {
-      setSecurityBanner('No obvious risks detected in top results.', 'info')
+      setSecurityBanner('No obvious risks detected in top results.', 'info', true)
     }
 
     const modal = ensureModal()
@@ -922,7 +947,19 @@ async function run(baseQuestion) {
       pendingInfo = null
     }
 
-    cancelBtn.addEventListener('click', closeModal)
+    cancelBtn.addEventListener('click', async () => {
+      if (pendingInfo) {
+        await storeSecurityEvent({
+          type: 'action',
+          action: 'cancel',
+          url: pendingInfo.url,
+          domain: pendingInfo.domain,
+          level: pendingInfo.level,
+          timestamp: Date.now(),
+        })
+      }
+      closeModal()
+    })
     modal.querySelector('.gptx-security-modal-backdrop').addEventListener('click', closeModal)
 
     allowBtn.addEventListener('click', async () => {
@@ -930,6 +967,16 @@ async function run(baseQuestion) {
         const updatedAllowlist = Array.from(new Set([...(allowlist || []), pendingDomain]))
         securitySettings.allowlist = updatedAllowlist
         await saveSecurityAllowlist(updatedAllowlist)
+      }
+      if (pendingInfo) {
+        await storeSecurityEvent({
+          type: 'action',
+          action: 'allow',
+          url: pendingInfo.url,
+          domain: pendingInfo.domain,
+          level: pendingInfo.level,
+          timestamp: Date.now(),
+        })
       }
       if (pendingNavigation) {
         window.location.href = pendingNavigation
@@ -948,12 +995,30 @@ async function run(baseQuestion) {
       }
       await storeSecurityReport(report)
       clipboard.write(JSON.stringify(report, null, 2))
+      await storeSecurityEvent({
+        type: 'action',
+        action: 'report',
+        url: pendingInfo.url,
+        domain: pendingInfo.domain,
+        level: pendingInfo.level,
+        timestamp: Date.now(),
+      })
       closeModal()
       setSecurityBanner('Report copied. Thanks for helping keep results safe.', 'info')
     })
 
-    continueBtn.addEventListener('click', () => {
+    continueBtn.addEventListener('click', async () => {
       if (pendingNavigation) {
+        if (pendingInfo) {
+          await storeSecurityEvent({
+            type: 'action',
+            action: 'continue',
+            url: pendingInfo.url,
+            domain: pendingInfo.domain,
+            level: pendingInfo.level,
+            timestamp: Date.now(),
+          })
+        }
         window.location.href = pendingNavigation
       }
       closeModal()
@@ -998,6 +1063,14 @@ async function run(baseQuestion) {
         modalUrl.textContent = pendingNavigation
         continueBtn.disabled = hardBlock
         continueBtn.textContent = hardBlock ? 'Blocked' : 'Continue'
+        await storeSecurityEvent({
+          type: hardBlock ? 'blocked' : 'warned',
+          action: hardBlock ? 'blocked' : 'warned',
+          url: pendingNavigation,
+          domain: pendingDomain,
+          level: riskInfo.level,
+          timestamp: Date.now(),
+        })
         const extraReasons = []
         if (pendingInfo.removedParams?.length) {
           extraReasons.push(`Tracking params removed: ${pendingInfo.removedParams.join(', ')}`)
