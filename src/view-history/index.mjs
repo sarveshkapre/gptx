@@ -10,6 +10,9 @@ const STORAGE_KEYS_TO_IGNORE = new Set([
   'gptxPreferences',
   'gptxSecurityEnabled',
   'gptxSecurityAllowlist',
+  'gptxSecurityBlocklist',
+  'gptxSecuritySettings',
+  'gptxSecurityReports',
 ])
 const markdown = new MarkdownIt()
 

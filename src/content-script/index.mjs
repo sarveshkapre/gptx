@@ -12,9 +12,21 @@ const DEFAULT_PREFERENCES = {
   format: 'bullets',
 }
 
+const DEFAULT_SECURITY_SETTINGS = {
+  warnOnRisky: true,
+  blockOnHighRisk: false,
+  stripTracking: true,
+  upgradeHttps: true,
+  hideAds: true,
+  showBadges: true,
+  sensitiveAlerts: true,
+}
+
 const DEFAULT_SECURITY = {
   enabled: true,
   allowlist: [],
+  blocklist: [],
+  settings: DEFAULT_SECURITY_SETTINGS,
 }
 
 const MODE_CONFIG = {
@@ -86,6 +98,25 @@ const SECURITY_CONFIG = {
   multiPartTlds: ['co.uk', 'org.uk', 'ac.uk', 'co.jp', 'com.au', 'net.au'],
 }
 
+const TRACKING_PARAM_PREFIXES = ['utm_', 'pk_', 'ga_', 'fb_', 'ig_', 'mc_', 'vero_', 'yclid']
+const TRACKING_PARAMS = [
+  'gclid',
+  'fbclid',
+  'igshid',
+  'mc_cid',
+  'mc_eid',
+  'msclkid',
+  'dclid',
+  'gbraid',
+  'wbraid',
+  'ref',
+  'ref_src',
+  'spm',
+  'srsltid',
+  'si',
+  'cid',
+]
+
 const searchInput = document.getElementsByName('q')[0]
 if (searchInput && searchInput.value) {
   const startParam = new URL(location.href).searchParams.get('start') || '0'
@@ -109,22 +140,50 @@ async function savePreferences(preferences) {
 }
 
 async function loadSecuritySettings() {
-  const stored = await Browser.storage.local.get(['gptxSecurityEnabled', 'gptxSecurityAllowlist'])
+  const stored = await Browser.storage.local.get([
+    'gptxSecurityEnabled',
+    'gptxSecurityAllowlist',
+    'gptxSecurityBlocklist',
+    'gptxSecuritySettings',
+  ])
   const enabled =
     stored.gptxSecurityEnabled === undefined ? DEFAULT_SECURITY.enabled : stored.gptxSecurityEnabled
   const allowlist = stored.gptxSecurityAllowlist || DEFAULT_SECURITY.allowlist
+  const blocklist = stored.gptxSecurityBlocklist || DEFAULT_SECURITY.blocklist
+  const settings = {
+    ...DEFAULT_SECURITY_SETTINGS,
+    ...(stored.gptxSecuritySettings || {}),
+  }
   if (stored.gptxSecurityEnabled === undefined) {
     await Browser.storage.local.set({ gptxSecurityEnabled: enabled })
   }
   if (!stored.gptxSecurityAllowlist) {
     await Browser.storage.local.set({ gptxSecurityAllowlist: allowlist })
   }
-  return { ...DEFAULT_SECURITY, enabled, allowlist }
+  if (!stored.gptxSecurityBlocklist) {
+    await Browser.storage.local.set({ gptxSecurityBlocklist: blocklist })
+  }
+  if (!stored.gptxSecuritySettings) {
+    await Browser.storage.local.set({ gptxSecuritySettings: settings })
+  }
+  return { ...DEFAULT_SECURITY, enabled, allowlist, blocklist, settings }
 }
 
 async function saveSecurityAllowlist(allowlist) {
   await Browser.storage.local.set({
     gptxSecurityAllowlist: allowlist,
+  })
+}
+
+async function saveSecurityBlocklist(blocklist) {
+  await Browser.storage.local.set({
+    gptxSecurityBlocklist: blocklist,
+  })
+}
+
+async function saveSecuritySettings(settings) {
+  await Browser.storage.local.set({
+    gptxSecuritySettings: settings,
   })
 }
 
@@ -232,6 +291,72 @@ function extractTargetUrl(href) {
   }
 }
 
+function getTrackingParams(url) {
+  try {
+    const parsed = new URL(url)
+    const matches = []
+    parsed.searchParams.forEach((_, key) => {
+      const lowerKey = key.toLowerCase()
+      if (
+        TRACKING_PARAMS.includes(lowerKey) ||
+        TRACKING_PARAM_PREFIXES.some((prefix) => lowerKey.startsWith(prefix))
+      ) {
+        matches.push(key)
+      }
+    })
+    return matches
+  } catch {
+    return []
+  }
+}
+
+function stripTrackingParams(url) {
+  try {
+    const parsed = new URL(url)
+    const removed = []
+    Array.from(parsed.searchParams.keys()).forEach((key) => {
+      const lowerKey = key.toLowerCase()
+      if (
+        TRACKING_PARAMS.includes(lowerKey) ||
+        TRACKING_PARAM_PREFIXES.some((prefix) => lowerKey.startsWith(prefix))
+      ) {
+        parsed.searchParams.delete(key)
+        removed.push(key)
+      }
+    })
+    return { url: parsed.toString(), removed }
+  } catch {
+    return { url, removed: [] }
+  }
+}
+
+function upgradeToHttps(url) {
+  if (!url.startsWith('http://')) return { url, upgraded: false }
+  return { url: url.replace(/^http:\/\//, 'https://'), upgraded: true }
+}
+
+function isSensitiveUrl(url) {
+  const lower = url.toLowerCase()
+  return SECURITY_CONFIG.sensitiveKeywords.some((keyword) => lower.includes(keyword))
+}
+
+function applyUrlSafety(url, settings) {
+  let finalUrl = url
+  let removedParams = []
+  let upgraded = false
+  if (settings.stripTracking) {
+    const stripped = stripTrackingParams(finalUrl)
+    finalUrl = stripped.url
+    removedParams = stripped.removed
+  }
+  if (settings.upgradeHttps) {
+    const upgradedResult = upgradeToHttps(finalUrl)
+    finalUrl = upgradedResult.url
+    upgraded = upgradedResult.upgraded
+  }
+  return { finalUrl, removedParams, upgraded }
+}
+
 function getSearchResultLinks() {
   const links = []
   document.querySelectorAll('a h3').forEach((heading) => {
@@ -254,10 +379,36 @@ function getSearchResultLinks() {
   return links
 }
 
-function assessDomainRisk(hostname, query, allowlist) {
+function hideGoogleAds() {
+  const selectors = [
+    '#tads',
+    '#tadsb',
+    '#taw',
+    '.uEierd',
+    '.commercial-unit-desktop-top',
+    '.commercial-unit-desktop-rhs',
+    '[data-text-ad]',
+  ]
+  selectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((element) => {
+      element.style.display = 'none'
+    })
+  })
+}
+
+function assessDomainRisk(hostname, query, allowlist, blocklist) {
   const normalized = normalizeDomain(hostname)
   if (allowlist.includes(normalized)) {
-    return { score: 0, reasons: [], sensitive: false }
+    return { score: 0, reasons: [], sensitive: false, blocklisted: false, allowlisted: true }
+  }
+  if (blocklist.includes(normalized)) {
+    return {
+      score: 10,
+      reasons: ['Blocked by your security list'],
+      sensitive: true,
+      blocklisted: true,
+      allowlisted: false,
+    }
   }
   const sld = getSecondLevelDomain(normalized)
   let score = 0
@@ -287,10 +438,21 @@ function assessDomainRisk(hostname, query, allowlist) {
       reasons.push(`Looks like ${brand}`)
     }
   })
-  const sensitive = SECURITY_CONFIG.sensitiveKeywords.some((keyword) =>
-    query.toLowerCase().includes(keyword),
-  )
-  return { score, reasons, sensitive }
+  const queryTokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .filter((token) => token.length >= 4)
+  queryTokens.forEach((token) => {
+    if (token === sld) return
+    if (levenshtein(sld, token) <= 1) {
+      score += 2
+      reasons.push(`Looks similar to "${token}"`)
+    }
+  })
+  const sensitive =
+    SECURITY_CONFIG.sensitiveKeywords.some((keyword) => query.toLowerCase().includes(keyword)) ||
+    SECURITY_CONFIG.sensitiveKeywords.some((keyword) => sld.includes(keyword))
+  return { score, reasons, sensitive, blocklisted: false, allowlisted: false }
 }
 
 function getRiskLevel(score) {
@@ -316,10 +478,12 @@ function ensureModal() {
     <div class="gptx-security-modal-backdrop"></div>
     <div class="gptx-security-modal-card">
       <div class="gptx-security-modal-title">Potential phishing risk</div>
+      <div class="gptx-security-modal-subtitle"></div>
       <div class="gptx-security-modal-url"></div>
       <ul class="gptx-security-modal-reasons"></ul>
       <div class="gptx-security-modal-actions">
         <button class="gptx-security-btn" id="gptx-security-cancel">Cancel</button>
+        <button class="gptx-security-btn" id="gptx-security-report">Report</button>
         <button class="gptx-security-btn danger" id="gptx-security-allow">Always allow</button>
         <button class="gptx-security-btn primary" id="gptx-security-continue">Continue</button>
       </div>
@@ -327,6 +491,15 @@ function ensureModal() {
   `
   document.body.appendChild(modal)
   return modal
+}
+
+async function storeSecurityReport(report) {
+  const stored = await Browser.storage.local.get('gptxSecurityReports')
+  const reports = stored.gptxSecurityReports || []
+  reports.unshift(report)
+  await Browser.storage.local.set({
+    gptxSecurityReports: reports.slice(0, 100),
+  })
 }
 
 async function run(baseQuestion) {
@@ -380,6 +553,7 @@ async function run(baseQuestion) {
 
   let preferences = await loadPreferences()
   let securitySettings = await loadSecuritySettings()
+  const { enabled: securityEnabled, allowlist, blocklist, settings } = securitySettings
   let activeRequest = null
   let previousResponse = ''
   const riskMap = new WeakMap()
@@ -652,64 +826,100 @@ async function run(baseQuestion) {
   setFollowupDisabled(true)
   setButtonsDisabled(true)
 
-  if (securitySettings.enabled) {
+  if (securityEnabled) {
+    if (settings.hideAds) {
+      hideGoogleAds()
+    }
     const results = getSearchResultLinks()
     let riskyCount = 0
     let sensitiveCount = 0
-    const allowlist = securitySettings.allowlist.map(normalizeDomain)
+    let trackingCount = 0
+    let httpCount = 0
+    const normalizedAllowlist = allowlist.map(normalizeDomain)
+    const normalizedBlocklist = blocklist.map(normalizeDomain)
+
     results.forEach((result) => {
-      const assessment = assessDomainRisk(result.hostname, baseQuestion, allowlist)
+      const assessment = assessDomainRisk(
+        result.hostname,
+        baseQuestion,
+        normalizedAllowlist,
+        normalizedBlocklist,
+      )
       const level = getRiskLevel(assessment.score)
-      if (level !== 'low') {
-        riskyCount += 1
-        riskMap.set(result.anchor, {
-          url: result.url,
-          domain: normalizeDomain(result.hostname),
-          reasons: assessment.reasons,
-          level,
-        })
-        if (result.heading && !result.heading.querySelector('.gptx-security-badge')) {
+      const trackingParams = getTrackingParams(result.url)
+      const isHttp = result.url.startsWith('http://')
+      const sensitive = assessment.sensitive || isSensitiveUrl(result.url)
+
+      if (level !== 'low') riskyCount += 1
+      if (sensitive) sensitiveCount += 1
+      if (trackingParams.length > 0) trackingCount += 1
+      if (isHttp) httpCount += 1
+
+      const riskInfo = {
+        url: result.url,
+        domain: normalizeDomain(result.hostname),
+        reasons: assessment.reasons,
+        level,
+        sensitive,
+        trackingParams,
+        isHttp,
+        blocklisted: assessment.blocklisted,
+      }
+      riskMap.set(result.anchor, riskInfo)
+
+      if (settings.showBadges) {
+        if (level !== 'low' && result.heading) {
           const badgeText = level === 'high' ? 'High risk' : 'Review'
           const badgeClass = level === 'high' ? 'gptx-risk-high' : 'gptx-risk-review'
           result.heading.appendChild(createBadge(badgeText, badgeClass))
         }
-      }
-      if (assessment.sensitive) {
-        sensitiveCount += 1
-        if (result.heading && !result.heading.querySelector('.gptx-risk-sensitive')) {
+        if (settings.sensitiveAlerts && sensitive && result.heading) {
           result.heading.appendChild(createBadge('Sensitive', 'gptx-risk-sensitive'))
+        }
+        if (settings.stripTracking && trackingParams.length > 0 && result.heading) {
+          result.heading.appendChild(createBadge('Tracking', 'gptx-risk-review'))
+        }
+        if (settings.upgradeHttps && isHttp && result.heading) {
+          result.heading.appendChild(createBadge('HTTP', 'gptx-risk-high'))
         }
       }
     })
+
+    const hasCleaning =
+      (settings.stripTracking && trackingCount > 0) || (settings.upgradeHttps && httpCount > 0)
 
     if (riskyCount > 0) {
       setSecurityBanner(
         `${riskyCount} result${riskyCount > 1 ? 's' : ''} look risky. We’ll warn before you visit.`,
         'warn',
       )
-    } else if (sensitiveCount > 0) {
-      setSecurityBanner(
-        `Sensitive search detected. Double‑check URLs before signing in.`,
-        'info',
-      )
+    } else if (settings.sensitiveAlerts && sensitiveCount > 0) {
+      setSecurityBanner('Sensitive search detected. Double‑check URLs before signing in.', 'info')
+    } else if (hasCleaning) {
+      setSecurityBanner('We’ll clean tracking links and upgrade insecure URLs.', 'info')
     } else {
       setSecurityBanner('No obvious risks detected in top results.', 'info')
     }
 
     const modal = ensureModal()
+    const modalTitle = modal.querySelector('.gptx-security-modal-title')
+    const modalSubtitle = modal.querySelector('.gptx-security-modal-subtitle')
     const modalUrl = modal.querySelector('.gptx-security-modal-url')
     const modalReasons = modal.querySelector('.gptx-security-modal-reasons')
     const cancelBtn = modal.querySelector('#gptx-security-cancel')
+    const reportBtn = modal.querySelector('#gptx-security-report')
     const allowBtn = modal.querySelector('#gptx-security-allow')
     const continueBtn = modal.querySelector('#gptx-security-continue')
 
     let pendingNavigation = null
     let pendingDomain = null
+    let pendingInfo = null
 
     const closeModal = () => {
       modal.classList.remove('is-visible')
       pendingNavigation = null
       pendingDomain = null
+      pendingInfo = null
     }
 
     cancelBtn.addEventListener('click', closeModal)
@@ -717,9 +927,7 @@ async function run(baseQuestion) {
 
     allowBtn.addEventListener('click', async () => {
       if (pendingDomain) {
-        const updatedAllowlist = Array.from(
-          new Set([...(securitySettings.allowlist || []), pendingDomain]),
-        )
+        const updatedAllowlist = Array.from(new Set([...(allowlist || []), pendingDomain]))
         securitySettings.allowlist = updatedAllowlist
         await saveSecurityAllowlist(updatedAllowlist)
       }
@@ -727,6 +935,21 @@ async function run(baseQuestion) {
         window.location.href = pendingNavigation
       }
       closeModal()
+    })
+
+    reportBtn.addEventListener('click', async () => {
+      if (!pendingInfo) return
+      const report = {
+        url: pendingInfo.url,
+        domain: pendingInfo.domain,
+        reasons: pendingInfo.reasons,
+        level: pendingInfo.level,
+        timestamp: Date.now(),
+      }
+      await storeSecurityReport(report)
+      clipboard.write(JSON.stringify(report, null, 2))
+      closeModal()
+      setSecurityBanner('Report copied. Thanks for helping keep results safe.', 'info')
     })
 
     continueBtn.addEventListener('click', () => {
@@ -737,17 +960,59 @@ async function run(baseQuestion) {
     })
 
     results.forEach((result) => {
-      result.anchor.addEventListener('click', (event) => {
+      result.anchor.addEventListener('click', async (event) => {
         const riskInfo = riskMap.get(result.anchor)
         if (!riskInfo) return
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1) {
           return
         }
+        const hardBlock =
+          riskInfo.blocklisted || (settings.blockOnHighRisk && riskInfo.level === 'high')
+        const shouldWarn = hardBlock || (settings.warnOnRisky && riskInfo.level !== 'low')
+        const safetyResult = applyUrlSafety(riskInfo.url, settings)
+        if (!shouldWarn && safetyResult.finalUrl === riskInfo.url) {
+          return
+        }
         event.preventDefault()
-        pendingNavigation = riskInfo.url
+        pendingNavigation = safetyResult.finalUrl
         pendingDomain = riskInfo.domain
-        modalUrl.textContent = riskInfo.url
-        modalReasons.innerHTML = riskInfo.reasons.map((reason) => `<li>${reason}</li>`).join('')
+        pendingInfo = {
+          ...riskInfo,
+          url: safetyResult.finalUrl,
+          removedParams: safetyResult.removedParams,
+          upgraded: safetyResult.upgraded,
+        }
+
+        if (!shouldWarn) {
+          window.location.href = pendingNavigation
+          return
+        }
+
+        modalTitle.textContent = riskInfo.blocklisted
+          ? 'Blocked by your security list'
+          : 'Potential phishing risk'
+        modalSubtitle.textContent =
+          riskInfo.level === 'high' || riskInfo.blocklisted
+            ? 'We recommend avoiding this site.'
+            : 'Review the risks before continuing.'
+        modalUrl.textContent = pendingNavigation
+        continueBtn.disabled = hardBlock
+        continueBtn.textContent = hardBlock ? 'Blocked' : 'Continue'
+        const extraReasons = []
+        if (pendingInfo.removedParams?.length) {
+          extraReasons.push(`Tracking params removed: ${pendingInfo.removedParams.join(', ')}`)
+        }
+        if (pendingInfo.upgraded) {
+          extraReasons.push('Upgraded to HTTPS')
+        }
+        if (riskInfo.isHttp) {
+          extraReasons.push('Insecure HTTP link')
+        }
+        if (riskInfo.sensitive && settings.sensitiveAlerts) {
+          extraReasons.push('Sensitive query or URL')
+        }
+        const allReasons = [...riskInfo.reasons, ...extraReasons]
+        modalReasons.innerHTML = allReasons.map((reason) => `<li>${reason}</li>`).join('')
         modal.classList.add('is-visible')
       })
     })

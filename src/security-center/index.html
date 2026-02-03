@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <title>GPTx Security Center</title>
+    <link rel="stylesheet" type="text/css" href="security-center.css" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <script src="security-center.js" async></script>
+  </head>
+  <body>
+    <nav class="navbar gptx-sec-nav">
+      <div class="navbar-brand">
+        <img class="gptx-navbar-brand-icon" height="32" width="32" src="icon48.png" />Security
+        Center
+      </div>
+    </nav>
+    <div class="container-fluid gptx-sec-container">
+      <div class="row gptx-sec-row">
+        <div class="col-4 gptx-sec-sidebar">
+          <div class="gptx-sec-section">
+            <div class="gptx-sec-section-title">Protection</div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-enabled">Security enabled</label>
+              <input type="checkbox" id="gptx-sec-enabled" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-warn">Warn on risky links</label>
+              <input type="checkbox" id="gptx-sec-warn" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-block">Block high‑risk links</label>
+              <input type="checkbox" id="gptx-sec-block" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-strip">Strip tracking params</label>
+              <input type="checkbox" id="gptx-sec-strip" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-https">Upgrade HTTP to HTTPS</label>
+              <input type="checkbox" id="gptx-sec-https" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-ads">Hide Google ads</label>
+              <input type="checkbox" id="gptx-sec-ads" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-sensitive">Sensitive query alerts</label>
+              <input type="checkbox" id="gptx-sec-sensitive" />
+            </div>
+            <div class="gptx-sec-toggle">
+              <label for="gptx-sec-badges">Show safety badges</label>
+              <input type="checkbox" id="gptx-sec-badges" />
+            </div>
+          </div>
+          <div class="gptx-sec-section">
+            <div class="gptx-sec-section-title">Allowlist</div>
+            <textarea id="gptx-sec-allowlist" rows="4" placeholder="trusted.com"></textarea>
+            <div class="gptx-sec-section-title">Blocklist</div>
+            <textarea id="gptx-sec-blocklist" rows="4" placeholder="bad-site.xyz"></textarea>
+            <button class="gptx-sec-save" id="gptx-sec-save">Save changes</button>
+          </div>
+        </div>
+        <div class="col-8 gptx-sec-content">
+          <div class="gptx-sec-section">
+            <div class="gptx-sec-section-title">Reported sites</div>
+            <div class="gptx-sec-actions">
+              <button class="gptx-sec-btn" id="gptx-sec-copy-reports">Copy reports</button>
+              <button class="gptx-sec-btn danger" id="gptx-sec-clear-reports">Clear reports</button>
+            </div>
+            <div id="gptx-sec-reports"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

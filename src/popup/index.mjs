@@ -53,6 +53,12 @@ async function main() {
       url: 'view-history.html',
     })
   })
+  const gptxSecurityCenterBtn = document.getElementById('gptx-open-security-center')
+  gptxSecurityCenterBtn.addEventListener('click', () => {
+    Browser.tabs.create({
+      url: 'security-center.html',
+    })
+  })
 
   // setting previous extension enabled value and event listener for enable extension switch
   const gptxExtensionStatusCheck = document.getElementById('gptx-enable-extension-switch')

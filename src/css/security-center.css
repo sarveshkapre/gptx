@@ -1,0 +1,101 @@
+@import "view-history.css";
+
+.gptx-sec-nav {
+  background-color: #292a2d;
+  color: white;
+}
+.gptx-sec-container {
+  padding: 0;
+  margin: 0;
+}
+.gptx-sec-row {
+  min-height: calc(100vh - 56px);
+  background: var(--gptx-result-bg-color);
+}
+.gptx-sec-sidebar {
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+  padding: 20px;
+  border-right: 1px solid rgba(0,0,0,.08);
+}
+.gptx-sec-content {
+  padding: 20px;
+}
+.gptx-sec-section {
+  background: var(--gptx-result-bg-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.gptx-sec-section-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.gptx-sec-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.gptx-sec-toggle input {
+  transform: scale(1.1);
+}
+#gptx-sec-allowlist,
+#gptx-sec-blocklist {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  padding: 8px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+}
+.gptx-sec-save {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #1a73e8;
+  color: white;
+}
+.gptx-sec-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.gptx-sec-btn {
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(0,0,0,.1);
+  background: white;
+}
+.gptx-sec-btn.danger {
+  background: rgba(234, 67, 53, 0.1);
+  color: #d93025;
+  border-color: rgba(234, 67, 53, 0.3);
+}
+.gptx-sec-report {
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.1);
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--gptx-question-bg-color);
+  color: var(--gptx-text-color);
+  font-size: 12px;
+}
+.gptx-sec-report-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.gptx-sec-report-meta {
+  opacity: 0.7;
+  margin-bottom: 6px;
+}

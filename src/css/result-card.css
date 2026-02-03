@@ -284,6 +284,11 @@
   font-weight: 700;
   margin-bottom: 6px;
 }
+.gptx-security-modal-subtitle {
+  font-size: 12px;
+  color: var(--gptx-muted);
+  margin-bottom: 8px;
+}
 .gptx-security-modal-url {
   font-size: 12px;
   color: var(--gptx-muted);
@@ -318,6 +323,10 @@
   background: rgba(234, 67, 53, 0.1);
   color: #d93025;
   border-color: rgba(234, 67, 53, 0.4);
+}
+.gptx-security-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 #gptx-card-footer {
   display: inline-flex;
