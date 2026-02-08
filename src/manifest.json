@@ -13,7 +13,7 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "host_permissions": ["https://*.openai.com/"],
+  "host_permissions": ["https://*.openai.com/", "https://chatgpt.com/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -25,7 +25,7 @@
       "css": ["bootstrap.min.css", "github-markdown.css", "result-card.css"]
     },
     {
-      "matches": ["https://chat.openai.com/chat"],
+      "matches": ["https://chat.openai.com/*", "https://chatgpt.com/*"],
       "js": ["chatgpt-script.js"]
     }
   ]

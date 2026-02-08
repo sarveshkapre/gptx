@@ -10,6 +10,12 @@ import { streamAsyncIterable } from './stream-async-iterable.mjs'
 export async function fetchSSE(resource, options) {
   const { onMessage, ...fetchOptions } = options
   const resp = await fetch(resource, fetchOptions)
+  if (!resp.ok) {
+    throw new Error(`HTTP_${resp.status}`)
+  }
+  if (!resp.body) {
+    throw new Error('EMPTY_RESPONSE')
+  }
 
   // Next, the function creates an event source parser using the createParser function, which is passed a callback that is called whenever an event is received. If the event is an event type, the callback calls the onMessage function with the event data.
 
