@@ -7,8 +7,9 @@
   "license": "ISC",
   "scripts": {
     "build": "node build.mjs",
-    "lint": "eslint --ext .js,.mjs .",
-    "lint:fix": "eslint --ext .js,.mjs . --fix"
+    "test": "node --test",
+    "lint": "eslint --ext .js,.mjs src test build.mjs",
+    "lint:fix": "eslint --ext .js,.mjs src test build.mjs --fix"
   },
   "dependencies": {
     "archiver": "^5.3.1",

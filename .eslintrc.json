@@ -5,6 +5,13 @@
     },
     "extends": "eslint:recommended",
     "overrides": [
+        {
+            "files": ["test/**/*.mjs"],
+            "env": {
+                "node": true,
+                "es2021": true
+            }
+        }
     ],
     "parserOptions": {
         "ecmaVersion": "latest",

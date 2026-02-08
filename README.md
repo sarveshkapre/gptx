@@ -36,7 +36,7 @@ To leverage the power of the ChatGPT language model to provide users with a more
 - Boosts Productivity
     ✅ Easily Enabled/Disable ChatGPT query search using the new popup extension
     ✅ View ChatGPT browsing history
-    ✅ Clear entire ChatGPT browsing history or only selected data with just one click
+    ✅ Clear GPTx answer history (all or selected) without resetting extension/security settings
     ✅ Easily Copy entire thread or Copy all answers on ChatGPT official website
     ✅ Answer modes (Summary / Balanced / Deep) and formats (Bullets / Steps / Table)
     ✅ Follow-up questions with keyboard shortcuts
@@ -54,7 +54,8 @@ https://chrome.google.com/webstore/detail/gptx/ljmohcbobmmelbiijhpigdmmoboabjcl
 
 1. Clone or download this repository
 2. Install dependencies using `npm install`
-3. Build extension using `npm run build`
+3. Run quality checks using `npm run lint && npm test`
+4. Build extension using `npm run build`
 
 For installing in Google Chrome
 
