@@ -3,6 +3,15 @@ import {
   getApprovedCheckIconSvg,
   getCopyIconSvg,
 } from '../constants/template-strings.mjs'
+import { buildCacheKey, normalizeEntry } from '../utils/history-utils.mjs'
+import {
+  applyUrlSafety,
+  assessDomainRisk,
+  getRiskLevel,
+  getTrackingParams,
+  isSensitiveUrl,
+  normalizeDomain,
+} from '../utils/security-utils.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
@@ -59,63 +68,6 @@ const FORMAT_CONFIG = {
     instruction: 'Use a table when helpful; otherwise use bullets.',
   },
 }
-
-const SECURITY_CONFIG = {
-  suspiciousTlds: ['zip', 'mov', 'xyz', 'top', 'gq', 'cam', 'work', 'support', 'click', 'rest'],
-  brands: [
-    'google',
-    'apple',
-    'microsoft',
-    'amazon',
-    'paypal',
-    'netflix',
-    'github',
-    'linkedin',
-    'facebook',
-    'instagram',
-    'twitter',
-    'x',
-    'openai',
-    'coinbase',
-    'binance',
-    'chase',
-    'bankofamerica',
-    'wellsfargo',
-    'citibank',
-  ],
-  sensitiveKeywords: [
-    'login',
-    'signin',
-    'sign in',
-    'password',
-    'verify',
-    'bank',
-    'wallet',
-    'crypto',
-    'payment',
-    'checkout',
-  ],
-  multiPartTlds: ['co.uk', 'org.uk', 'ac.uk', 'co.jp', 'com.au', 'net.au'],
-}
-
-const TRACKING_PARAM_PREFIXES = ['utm_', 'pk_', 'ga_', 'fb_', 'ig_', 'mc_', 'vero_', 'yclid']
-const TRACKING_PARAMS = [
-  'gclid',
-  'fbclid',
-  'igshid',
-  'mc_cid',
-  'mc_eid',
-  'msclkid',
-  'dclid',
-  'gbraid',
-  'wbraid',
-  'ref',
-  'ref_src',
-  'spm',
-  'srsltid',
-  'si',
-  'cid',
-]
 
 const searchInput = document.getElementsByName('q')[0]
 if (searchInput && searchInput.value) {
@@ -175,18 +127,6 @@ async function saveSecurityAllowlist(allowlist) {
   })
 }
 
-async function saveSecurityBlocklist(blocklist) {
-  await Browser.storage.local.set({
-    gptxSecurityBlocklist: blocklist,
-  })
-}
-
-async function saveSecuritySettings(settings) {
-  await Browser.storage.local.set({
-    gptxSecuritySettings: settings,
-  })
-}
-
 function buildPrompt({ question, preferences, followUp, priorAnswer }) {
   const modeInstruction = MODE_CONFIG[preferences.mode]?.instruction || ''
   const formatInstruction = FORMAT_CONFIG[preferences.format]?.instruction || ''
@@ -210,74 +150,6 @@ Question: ${question}
   `.trim()
 }
 
-function buildCacheKey(question, preferences) {
-  return `gptx:${question}::${preferences.mode}::${preferences.format}`
-}
-
-function normalizeEntry(key, value) {
-  if (!value) return null
-  if (typeof value === 'string') {
-    return {
-      question: key,
-      answer: value,
-      mode: 'legacy',
-      format: 'legacy',
-      createdAt: null,
-    }
-  }
-  if (typeof value === 'object' && value.answer) {
-    return {
-      question: value.question || key,
-      answer: value.answer,
-      mode: value.mode,
-      format: value.format,
-      createdAt: value.createdAt,
-    }
-  }
-  return null
-}
-
-function normalizeDomain(domain) {
-  return domain.replace(/^www\./, '').toLowerCase()
-}
-
-function getRootDomain(hostname) {
-  const normalized = normalizeDomain(hostname)
-  const parts = normalized.split('.')
-  if (parts.length <= 2) return normalized
-  const lastTwo = parts.slice(-2).join('.')
-  const lastThree = parts.slice(-3).join('.')
-  if (SECURITY_CONFIG.multiPartTlds.includes(lastTwo)) {
-    return parts.slice(-3).join('.')
-  }
-  if (SECURITY_CONFIG.multiPartTlds.includes(lastThree)) {
-    return parts.slice(-4).join('.')
-  }
-  return lastTwo
-}
-
-function getSecondLevelDomain(hostname) {
-  const root = getRootDomain(hostname)
-  return root.split('.').slice(0, -1).join('.') || root
-}
-
-function levenshtein(a, b) {
-  const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0))
-  for (let i = 0; i <= a.length; i++) matrix[i][0] = i
-  for (let j = 0; j <= b.length; j++) matrix[0][j] = j
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost,
-      )
-    }
-  }
-  return matrix[a.length][b.length]
-}
-
 function extractTargetUrl(href) {
   if (!href) return null
   try {
@@ -289,72 +161,6 @@ function extractTargetUrl(href) {
   } catch {
     return null
   }
-}
-
-function getTrackingParams(url) {
-  try {
-    const parsed = new URL(url)
-    const matches = []
-    parsed.searchParams.forEach((_, key) => {
-      const lowerKey = key.toLowerCase()
-      if (
-        TRACKING_PARAMS.includes(lowerKey) ||
-        TRACKING_PARAM_PREFIXES.some((prefix) => lowerKey.startsWith(prefix))
-      ) {
-        matches.push(key)
-      }
-    })
-    return matches
-  } catch {
-    return []
-  }
-}
-
-function stripTrackingParams(url) {
-  try {
-    const parsed = new URL(url)
-    const removed = []
-    Array.from(parsed.searchParams.keys()).forEach((key) => {
-      const lowerKey = key.toLowerCase()
-      if (
-        TRACKING_PARAMS.includes(lowerKey) ||
-        TRACKING_PARAM_PREFIXES.some((prefix) => lowerKey.startsWith(prefix))
-      ) {
-        parsed.searchParams.delete(key)
-        removed.push(key)
-      }
-    })
-    return { url: parsed.toString(), removed }
-  } catch {
-    return { url, removed: [] }
-  }
-}
-
-function upgradeToHttps(url) {
-  if (!url.startsWith('http://')) return { url, upgraded: false }
-  return { url: url.replace(/^http:\/\//, 'https://'), upgraded: true }
-}
-
-function isSensitiveUrl(url) {
-  const lower = url.toLowerCase()
-  return SECURITY_CONFIG.sensitiveKeywords.some((keyword) => lower.includes(keyword))
-}
-
-function applyUrlSafety(url, settings) {
-  let finalUrl = url
-  let removedParams = []
-  let upgraded = false
-  if (settings.stripTracking) {
-    const stripped = stripTrackingParams(finalUrl)
-    finalUrl = stripped.url
-    removedParams = stripped.removed
-  }
-  if (settings.upgradeHttps) {
-    const upgradedResult = upgradeToHttps(finalUrl)
-    finalUrl = upgradedResult.url
-    upgraded = upgradedResult.upgraded
-  }
-  return { finalUrl, removedParams, upgraded }
 }
 
 function getSearchResultLinks() {
@@ -394,71 +200,6 @@ function hideGoogleAds() {
       element.style.display = 'none'
     })
   })
-}
-
-function assessDomainRisk(hostname, query, allowlist, blocklist) {
-  const normalized = normalizeDomain(hostname)
-  if (allowlist.includes(normalized)) {
-    return { score: 0, reasons: [], sensitive: false, blocklisted: false, allowlisted: true }
-  }
-  if (blocklist.includes(normalized)) {
-    return {
-      score: 10,
-      reasons: ['Blocked by your security list'],
-      sensitive: true,
-      blocklisted: true,
-      allowlisted: false,
-    }
-  }
-  const sld = getSecondLevelDomain(normalized)
-  let score = 0
-  const reasons = []
-  const tld = normalized.split('.').slice(-1)[0]
-  if (normalized.includes('xn--')) {
-    score += 3
-    reasons.push('Uses punycode (possible lookalike)')
-  }
-  if (SECURITY_CONFIG.suspiciousTlds.includes(tld)) {
-    score += 2
-    reasons.push(`Unusual TLD (.${tld})`)
-  }
-  if (sld.includes('-') || /\d/.test(sld)) {
-    score += 1
-    reasons.push('Contains hyphens or digits')
-  }
-  SECURITY_CONFIG.brands.forEach((brand) => {
-    if (sld === brand) return
-    if (sld.includes(brand)) {
-      score += 2
-      reasons.push(`Includes brand name (${brand})`)
-      return
-    }
-    if (levenshtein(sld, brand) <= 1) {
-      score += 3
-      reasons.push(`Looks like ${brand}`)
-    }
-  })
-  const queryTokens = query
-    .toLowerCase()
-    .split(/[^a-z0-9]+/g)
-    .filter((token) => token.length >= 4)
-  queryTokens.forEach((token) => {
-    if (token === sld) return
-    if (levenshtein(sld, token) <= 1) {
-      score += 2
-      reasons.push(`Looks similar to "${token}"`)
-    }
-  })
-  const sensitive =
-    SECURITY_CONFIG.sensitiveKeywords.some((keyword) => query.toLowerCase().includes(keyword)) ||
-    SECURITY_CONFIG.sensitiveKeywords.some((keyword) => sld.includes(keyword))
-  return { score, reasons, sensitive, blocklisted: false, allowlisted: false }
-}
-
-function getRiskLevel(score) {
-  if (score >= 5) return 'high'
-  if (score >= 3) return 'review'
-  return 'low'
 }
 
 function createBadge(text, className) {
@@ -779,7 +520,7 @@ async function run(baseQuestion) {
       setFollowupDisabled(false)
       setStatus('Login required')
       gptxResponseBodyElem.innerHTML =
-        '<div class="gptx-response-placeholder is-error">Please login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first.</div>'
+        '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>'
     } else {
       setButtonsDisabled(false)
       setFollowupDisabled(false)
@@ -1085,7 +826,12 @@ async function run(baseQuestion) {
           extraReasons.push('Sensitive query or URL')
         }
         const allReasons = [...riskInfo.reasons, ...extraReasons]
-        modalReasons.innerHTML = allReasons.map((reason) => `<li>${reason}</li>`).join('')
+        modalReasons.innerHTML = ''
+        allReasons.forEach((reason) => {
+          const li = document.createElement('li')
+          li.textContent = reason
+          modalReasons.appendChild(li)
+        })
         modal.classList.add('is-visible')
       })
     })

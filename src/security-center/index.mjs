@@ -126,12 +126,10 @@ function renderReports(reports) {
     const div = document.createElement('div')
     div.className = 'gptx-sec-report'
     const time = report.timestamp ? new Date(report.timestamp).toLocaleString() : 'Unknown time'
-    div.innerHTML = `
-      <div class="gptx-sec-report-title">${report.domain || report.url}</div>
-      <div class="gptx-sec-report-meta">${report.level || 'review'} · ${time}</div>
-      <div>${report.url}</div>
-      <div>${(report.reasons || []).join(' · ')}</div>
-    `
+    div.appendChild(createTextDiv('gptx-sec-report-title', report.domain || report.url || 'Unknown'))
+    div.appendChild(createTextDiv('gptx-sec-report-meta', `${report.level || 'review'} · ${time}`))
+    div.appendChild(createTextDiv('', report.url || ''))
+    div.appendChild(createTextDiv('', (report.reasons || []).join(' · ')))
     elements.reports.appendChild(div)
   })
 }
@@ -146,12 +144,19 @@ function renderEvents(events) {
     const div = document.createElement('div')
     div.className = 'gptx-sec-event'
     const time = event.timestamp ? new Date(event.timestamp).toLocaleString() : 'Unknown time'
-    div.innerHTML = `
-      <div class="gptx-sec-report-title">${event.action || event.type}</div>
-      <div class="gptx-sec-report-meta">${event.level || 'review'} · ${time}</div>
-      <div>${event.url || ''}</div>
-      <div>${event.domain || ''}</div>
-    `
+    div.appendChild(createTextDiv('gptx-sec-report-title', event.action || event.type || 'Unknown'))
+    div.appendChild(createTextDiv('gptx-sec-report-meta', `${event.level || 'review'} · ${time}`))
+    div.appendChild(createTextDiv('', event.url || ''))
+    div.appendChild(createTextDiv('', event.domain || ''))
     elements.events.appendChild(div)
   })
+}
+
+function createTextDiv(className, text) {
+  const row = document.createElement('div')
+  if (className) {
+    row.className = className
+  }
+  row.textContent = text
+  return row
 }

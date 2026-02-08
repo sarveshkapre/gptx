@@ -98,14 +98,17 @@ export function getResultCardTemplate(iconColor) {
 }
 
 export function getQADivContentTemplate(storageKey, question, answer, meta = '') {
+  const safeStorageKey = escapeAttribute(storageKey)
+  const safeQuestion = escapeHtml(question)
+  const safeMeta = escapeHtml(meta)
   return `
   <div class="gptx-qa-checkbox">
-    <input type="checkbox" class="gptx-qa-checkbox-input" data-key="${storageKey}">
+    <input type="checkbox" class="gptx-qa-checkbox-input" data-key="${safeStorageKey}">
   </div>
   <button class="gptx-accordion-button" type="button">
-    ${question}
+    ${safeQuestion}
   </button>
-  ${meta ? `<div class="gptx-qa-meta">${meta}</div>` : ''}
+  ${safeMeta ? `<div class="gptx-qa-meta">${safeMeta}</div>` : ''}
   <div class="gptx-accordion-body markdown-body">
     ${answer}
   </div>
@@ -120,3 +123,4 @@ export function getNoHistoryTemplate() {
   </div>
   `
 }
+import { escapeAttribute, escapeHtml } from '../utils/safe-html.mjs'

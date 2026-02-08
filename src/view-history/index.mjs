@@ -4,17 +4,11 @@
 import { getQADivContentTemplate, getNoHistoryTemplate } from '../constants/template-strings.mjs'
 import Browser from 'webextension-polyfill'
 import MarkdownIt from 'markdown-it'
-
-const STORAGE_KEYS_TO_IGNORE = new Set([
-  'gptxExtensionEnabled',
-  'gptxPreferences',
-  'gptxSecurityEnabled',
-  'gptxSecurityAllowlist',
-  'gptxSecurityBlocklist',
-  'gptxSecuritySettings',
-  'gptxSecurityReports',
-  'gptxSecurityEvents',
-])
+import {
+  formatEntryMeta,
+  getHistoryKeys,
+  getRenderableEntries,
+} from '../utils/history-utils.mjs'
 const markdown = new MarkdownIt()
 
 main()
@@ -25,7 +19,10 @@ async function main() {
 
   const gptxClearAllDataElem = document.getElementById('gptx-clear-all-data')
   gptxClearAllDataElem.addEventListener('click', async () => {
-    await Browser.storage.local.clear()
+    const allData = await Browser.storage.local.get(null)
+    const historyKeys = getHistoryKeys(allData)
+    if (historyKeys.length === 0) return
+    await Browser.storage.local.remove(historyKeys)
     showSnackBar('Cleared GPTx history')
     const updatedData = await Browser.storage.local.get(null)
     renderDOM(updatedData)
@@ -37,7 +34,7 @@ async function main() {
     if (selectedKeys.length === 0) return
     await Browser.storage.local.remove(selectedKeys)
     selectedKeys.forEach((key) => {
-      const divToDelete = document.querySelector(`div[data-key="${key}"]`)
+      const divToDelete = findRowByKey(key)
       if (divToDelete) {
         divToDelete.remove()
       }
@@ -65,7 +62,7 @@ function renderDOM(cachedData) {
       entry.storageKey,
       entry.question,
       markdown.render(entry.answer),
-      formatMeta(entry),
+      formatEntryMeta(entry),
     )
     const qaDivElem = document.createElement('div')
     qaDivElem.setAttribute('data-key', entry.storageKey)
@@ -83,7 +80,7 @@ function attachCheckboxHandlers() {
   checkboxes.forEach((checkbox) => {
     checkbox.addEventListener('change', () => {
       const key = checkbox.getAttribute('data-key')
-      const row = document.querySelector(`div[data-key="${key}"]`)
+      const row = findRowByKey(key)
       if (row) {
         row.classList.toggle('is-selected', checkbox.checked)
       }
@@ -113,56 +110,12 @@ function getSelectedKeys() {
   return selected
 }
 
-function getRenderableEntries(cachedData) {
-  return Object.entries(cachedData)
-    .filter(([key]) => !STORAGE_KEYS_TO_IGNORE.has(key))
-    .map(([key, value]) => normalizeEntry(key, value))
-    .filter(Boolean)
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-}
-
-function normalizeEntry(storageKey, value) {
-  if (!value) return null
-  if (typeof value === 'string') {
-    return {
-      storageKey,
-      question: storageKey,
-      answer: value,
-      mode: 'legacy',
-      format: 'legacy',
-      createdAt: null,
-    }
-  }
-  if (typeof value === 'object' && value.answer) {
-    return {
-      storageKey,
-      question: value.question || storageKey,
-      answer: value.answer,
-      mode: value.mode,
-      format: value.format,
-      createdAt: value.createdAt,
-    }
-  }
-  return null
-}
-
-function formatMeta(entry) {
-  const parts = []
-  if (entry.mode && entry.mode !== 'legacy') {
-    parts.push(capitalize(entry.mode))
-  }
-  if (entry.format && entry.format !== 'legacy') {
-    parts.push(capitalize(entry.format))
-  }
-  if (entry.createdAt) {
-    parts.push(new Date(entry.createdAt).toLocaleString())
-  }
-  return parts.join(' · ')
-}
-
-function capitalize(value) {
-  if (!value) return ''
-  return value.charAt(0).toUpperCase() + value.slice(1)
+function findRowByKey(key) {
+  const escapedKey =
+    typeof CSS !== 'undefined' && CSS.escape
+      ? CSS.escape(key)
+      : key.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return document.querySelector(`div[data-key="${escapedKey}"]`)
 }
 
 function showSnackBar(msg) {

@@ -5,6 +5,7 @@ import Browser from 'webextension-polyfill'
 import clipboard from 'clipboardy'
 import MarkdownIt from 'markdown-it'
 import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/template-strings.mjs'
+import { formatEntryMeta, normalizeEntry } from '../utils/history-utils.mjs'
 
 // const gptxCopyIcon = document.getElementById('gptx-copy-icon')
 // gptxCopyIcon.innerHTML = getCopyIconSvg('1.2em', '1.2em', 'white')
@@ -67,54 +68,12 @@ async function getQuestionsAnswer() {
     return
   }
   updateDOM(entry.question, entry.answer)
-  metaElem.textContent = formatMeta(entry)
+  metaElem.textContent = formatEntryMeta(entry)
 }
 
 function updateDOM(question, answer) {
   const gptxNTResponseBody = document.getElementById('gptx-nt-response-body')
   const gptxNTQuestion = document.getElementById('gptx-nt-question')
-  gptxNTQuestion.innerHTML = question
+  gptxNTQuestion.textContent = question
   gptxNTResponseBody.innerHTML = markdown.render(answer)
-}
-
-function normalizeEntry(key, value) {
-  if (!value) return null
-  if (typeof value === 'string') {
-    return {
-      question: key,
-      answer: value,
-      mode: 'legacy',
-      format: 'legacy',
-      createdAt: null,
-    }
-  }
-  if (typeof value === 'object' && value.answer) {
-    return {
-      question: value.question || key,
-      answer: value.answer,
-      mode: value.mode,
-      format: value.format,
-      createdAt: value.createdAt,
-    }
-  }
-  return null
-}
-
-function formatMeta(entry) {
-  const parts = []
-  if (entry.mode && entry.mode !== 'legacy') {
-    parts.push(capitalize(entry.mode))
-  }
-  if (entry.format && entry.format !== 'legacy') {
-    parts.push(capitalize(entry.format))
-  }
-  if (entry.createdAt) {
-    parts.push(new Date(entry.createdAt).toLocaleString())
-  }
-  return parts.join(' · ')
-}
-
-function capitalize(value) {
-  if (!value) return ''
-  return value.charAt(0).toUpperCase() + value.slice(1)
 }
