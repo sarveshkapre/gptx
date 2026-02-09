@@ -64,6 +64,11 @@
   background: #1a73e8;
   color: white;
 }
+.gptx-sec-status {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.8;
+}
 .gptx-sec-actions {
   display: flex;
   gap: 8px;

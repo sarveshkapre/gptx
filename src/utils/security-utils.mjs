@@ -56,7 +56,61 @@ export const TRACKING_PARAMS = [
 ]
 
 export function normalizeDomain(domain = '') {
-  return domain.replace(/^www\./, '').toLowerCase()
+  return domain.trim().replace(/\.$/, '').replace(/^www\./, '').toLowerCase()
+}
+
+function isValidHostname(hostname) {
+  if (!hostname) return false
+  if (hostname === 'localhost') return true
+  // IPv4 (basic)
+  if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname)) return true
+  if (hostname.length > 253) return false
+  if (hostname.includes('..')) return false
+  // Labels: 1-63 chars, alnum + hyphen, not starting/ending with hyphen.
+  const label = '[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?'
+  const hostRe = new RegExp(`^(?:${label})(?:\\.(?:${label}))*$`)
+  return hostRe.test(hostname)
+}
+
+export function normalizeDomainEntry(input) {
+  if (typeof input !== 'string') return null
+  let value = input.trim()
+  if (!value) return null
+  if (value.startsWith('#')) return null
+
+  // Accept domains or full URLs. Strip scheme, userinfo, path, query, and fragment.
+  value = value.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '')
+  value = value.replace(/^\/\//, '')
+  value = value.split(/[/?#]/)[0] || ''
+  value = value.split('@').pop() || ''
+
+  // Strip port (IPv6 not supported in this UI).
+  value = value.replace(/:\d+$/, '')
+
+  // Handle common wildcard / dot-prefix patterns.
+  value = value.replace(/^\*\./, '').replace(/^\./, '')
+
+  const normalized = normalizeDomain(value)
+  if (!normalized) return null
+  if (!isValidHostname(normalized)) return null
+  return normalized
+}
+
+export function normalizeDomainList(entries = []) {
+  const domains = []
+  const invalid = []
+  const seen = new Set()
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const normalized = normalizeDomainEntry(entry)
+    if (!normalized) {
+      if (typeof entry === 'string' && entry.trim()) invalid.push(entry.trim())
+      continue
+    }
+    if (seen.has(normalized)) continue
+    seen.add(normalized)
+    domains.push(normalized)
+  }
+  return { domains, invalid }
 }
 
 export function getRootDomain(hostname, config = DEFAULT_SECURITY_ANALYSIS_CONFIG) {
@@ -179,10 +233,11 @@ export function assessDomainRisk(
   config = DEFAULT_SECURITY_ANALYSIS_CONFIG,
 ) {
   const normalized = normalizeDomain(hostname)
-  if (allowlist.includes(normalized)) {
+  const rootDomain = getRootDomain(normalized, config)
+  if (allowlist.includes(normalized) || allowlist.includes(rootDomain)) {
     return { score: 0, reasons: [], sensitive: false, blocklisted: false, allowlisted: true }
   }
-  if (blocklist.includes(normalized)) {
+  if (blocklist.includes(normalized) || blocklist.includes(rootDomain)) {
     return {
       score: 10,
       reasons: ['Blocked by your security list'],

@@ -13,6 +13,8 @@ import {
   assessDomainRisk,
   getRiskLevel,
   getTrackingParams,
+  normalizeDomainEntry,
+  normalizeDomainList,
   stripTrackingParams,
 } from '../src/utils/security-utils.mjs'
 
@@ -139,7 +141,24 @@ test('assessDomainRisk respects blocklist and risk thresholds', () => {
   assert.equal(blocked.blocklisted, true)
   assert.equal(getRiskLevel(blocked.score), 'high')
 
+  const rootBlocked = assessDomainRisk('sub.bad-site.xyz', 'anything', [], ['bad-site.xyz'])
+  assert.equal(rootBlocked.blocklisted, true)
+
   const suspicious = assessDomainRisk('paypa1-login.xyz', 'paypal login', [], [])
   assert.equal(['review', 'high'].includes(getRiskLevel(suspicious.score)), true)
   assert.equal(suspicious.reasons.length > 0, true)
+})
+
+test('normalizeDomainEntry accepts domains and URLs and rejects invalid inputs', () => {
+  assert.equal(normalizeDomainEntry('  WWW.Example.com. '), 'example.com')
+  assert.equal(normalizeDomainEntry('https://Example.com:8080/path?q=1'), 'example.com')
+  assert.equal(normalizeDomainEntry('*.sub.example.co.uk'), 'sub.example.co.uk')
+  assert.equal(normalizeDomainEntry('javascript:alert(1)'), null)
+  assert.equal(normalizeDomainEntry('not a domain'), null)
+})
+
+test('normalizeDomainList dedupes and returns invalid entries', () => {
+  const result = normalizeDomainList(['example.com', 'https://www.example.com/', 'bad input'])
+  assert.deepEqual(result.domains, ['example.com'])
+  assert.deepEqual(result.invalid, ['bad input'])
 })

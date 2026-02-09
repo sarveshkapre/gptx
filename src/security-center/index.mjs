@@ -1,4 +1,5 @@
 import Browser from 'webextension-polyfill'
+import { normalizeDomainList } from '../utils/security-utils.mjs'
 
 const DEFAULT_SECURITY_SETTINGS = {
   warnOnRisky: true,
@@ -22,11 +23,14 @@ const elements = {
   allowlist: document.getElementById('gptx-sec-allowlist'),
   blocklist: document.getElementById('gptx-sec-blocklist'),
   save: document.getElementById('gptx-sec-save'),
+  status: document.getElementById('gptx-sec-status'),
   reports: document.getElementById('gptx-sec-reports'),
   copyReports: document.getElementById('gptx-sec-copy-reports'),
+  downloadReports: document.getElementById('gptx-sec-download-reports'),
   clearReports: document.getElementById('gptx-sec-clear-reports'),
   events: document.getElementById('gptx-sec-events'),
   copyEvents: document.getElementById('gptx-sec-copy-events'),
+  downloadEvents: document.getElementById('gptx-sec-download-events'),
   clearEvents: document.getElementById('gptx-sec-clear-events'),
 }
 
@@ -47,8 +51,12 @@ async function main() {
     ...DEFAULT_SECURITY_SETTINGS,
     ...(stored.gptxSecuritySettings || {}),
   }
-  const allowlist = stored.gptxSecurityAllowlist || []
-  const blocklist = stored.gptxSecurityBlocklist || []
+  const allowlistRaw = stored.gptxSecurityAllowlist || []
+  const blocklistRaw = stored.gptxSecurityBlocklist || []
+  const allowResult = normalizeDomainList(allowlistRaw)
+  const blockResult = normalizeDomainList(blocklistRaw)
+  const allowlist = allowResult.domains
+  const blocklist = blockResult.domains
 
   elements.enabled.checked = enabled
   elements.warn.checked = settings.warnOnRisky
@@ -60,6 +68,17 @@ async function main() {
   elements.badges.checked = settings.showBadges
   elements.allowlist.value = allowlist.join('\n')
   elements.blocklist.value = blocklist.join('\n')
+  if (JSON.stringify(allowlistRaw) !== JSON.stringify(allowlist)) {
+    await Browser.storage.local.set({ gptxSecurityAllowlist: allowlist })
+  }
+  if (JSON.stringify(blocklistRaw) !== JSON.stringify(blocklist)) {
+    await Browser.storage.local.set({ gptxSecurityBlocklist: blocklist })
+  }
+  if (allowResult.invalid.length || blockResult.invalid.length) {
+    setStatus(
+      `Removed invalid entries from lists: ${allowResult.invalid.length + blockResult.invalid.length}.`,
+    )
+  }
 
   elements.save.addEventListener('click', async () => {
     const newSettings = {
@@ -71,12 +90,28 @@ async function main() {
       sensitiveAlerts: elements.sensitive.checked,
       showBadges: elements.badges.checked,
     }
+
+    const allowResult = normalizeDomainList(parseList(elements.allowlist.value))
+    const blockResult = normalizeDomainList(parseList(elements.blocklist.value))
+
     await Browser.storage.local.set({
       gptxSecurityEnabled: elements.enabled.checked,
       gptxSecuritySettings: newSettings,
-      gptxSecurityAllowlist: parseList(elements.allowlist.value),
-      gptxSecurityBlocklist: parseList(elements.blocklist.value),
+      gptxSecurityAllowlist: allowResult.domains,
+      gptxSecurityBlocklist: blockResult.domains,
     })
+
+    elements.allowlist.value = allowResult.domains.join('\n')
+    elements.blocklist.value = blockResult.domains.join('\n')
+    const allowInvalid = allowResult.invalid.length
+    const blockInvalid = blockResult.invalid.length
+    const suffix =
+      allowInvalid || blockInvalid
+        ? ` Removed invalid entries: ${allowInvalid + blockInvalid}.`
+        : ''
+    setStatus(
+      `Saved. Allowlist: ${allowResult.domains.length}. Blocklist: ${blockResult.domains.length}.${suffix}`,
+    )
   })
 
   const reports = stored.gptxSecurityReports || []
@@ -89,11 +124,20 @@ async function main() {
     await navigator.clipboard.writeText(
       JSON.stringify(latest.gptxSecurityReports || [], null, 2),
     )
+    setStatus('Reports copied.')
+  })
+
+  elements.downloadReports.addEventListener('click', async () => {
+    const latest = await Browser.storage.local.get('gptxSecurityReports')
+    const reports = latest.gptxSecurityReports || []
+    downloadJson(`gptx-security-reports-${getTodayStamp()}.json`, reports)
+    setStatus(`Downloaded ${reports.length} report${reports.length === 1 ? '' : 's'}.`)
   })
 
   elements.clearReports.addEventListener('click', async () => {
     await Browser.storage.local.set({ gptxSecurityReports: [] })
     renderReports([])
+    setStatus('Reports cleared.')
   })
 
   elements.copyEvents.addEventListener('click', async () => {
@@ -101,11 +145,20 @@ async function main() {
     await navigator.clipboard.writeText(
       JSON.stringify(latest.gptxSecurityEvents || [], null, 2),
     )
+    setStatus('Alerts copied.')
+  })
+
+  elements.downloadEvents.addEventListener('click', async () => {
+    const latest = await Browser.storage.local.get('gptxSecurityEvents')
+    const events = latest.gptxSecurityEvents || []
+    downloadJson(`gptx-security-alerts-${getTodayStamp()}.json`, events)
+    setStatus(`Downloaded ${events.length} alert${events.length === 1 ? '' : 's'}.`)
   })
 
   elements.clearEvents.addEventListener('click', async () => {
     await Browser.storage.local.set({ gptxSecurityEvents: [] })
     renderEvents([])
+    setStatus('Alerts cleared.')
   })
 }
 
@@ -114,6 +167,32 @@ function parseList(text) {
     .split(/\n|,/g)
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function setStatus(text) {
+  if (!elements.status) return
+  elements.status.textContent = text
+}
+
+function getTodayStamp() {
+  const d = new Date()
+  const yyyy = String(d.getFullYear())
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 function renderReports(reports) {

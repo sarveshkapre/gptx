@@ -13,10 +13,12 @@ import {
 import {
   applyUrlSafety,
   assessDomainRisk,
+  getRootDomain,
   getRiskLevel,
   getTrackingParams,
   isSensitiveUrl,
   normalizeDomain,
+  normalizeDomainList,
 } from '../utils/security-utils.mjs'
 import { copyText } from '../utils/clipboard-utils.mjs'
 import MarkdownIt from 'markdown-it'
@@ -131,8 +133,10 @@ async function loadSecuritySettings() {
   ])
   const enabled =
     stored.gptxSecurityEnabled === undefined ? DEFAULT_SECURITY.enabled : stored.gptxSecurityEnabled
-  const allowlist = stored.gptxSecurityAllowlist || DEFAULT_SECURITY.allowlist
-  const blocklist = stored.gptxSecurityBlocklist || DEFAULT_SECURITY.blocklist
+  const allowlistRaw = stored.gptxSecurityAllowlist || DEFAULT_SECURITY.allowlist
+  const blocklistRaw = stored.gptxSecurityBlocklist || DEFAULT_SECURITY.blocklist
+  const allowlist = normalizeDomainList(allowlistRaw).domains
+  const blocklist = normalizeDomainList(blocklistRaw).domains
   const settings = {
     ...DEFAULT_SECURITY_SETTINGS,
     ...(stored.gptxSecuritySettings || {}),
@@ -142,8 +146,12 @@ async function loadSecuritySettings() {
   }
   if (!stored.gptxSecurityAllowlist) {
     await Browser.storage.local.set({ gptxSecurityAllowlist: allowlist })
+  } else if (JSON.stringify(allowlistRaw) !== JSON.stringify(allowlist)) {
+    await Browser.storage.local.set({ gptxSecurityAllowlist: allowlist })
   }
   if (!stored.gptxSecurityBlocklist) {
+    await Browser.storage.local.set({ gptxSecurityBlocklist: blocklist })
+  } else if (JSON.stringify(blocklistRaw) !== JSON.stringify(blocklist)) {
     await Browser.storage.local.set({ gptxSecurityBlocklist: blocklist })
   }
   if (!stored.gptxSecuritySettings) {
@@ -635,6 +643,7 @@ async function run(baseQuestion) {
       const trackingParams = getTrackingParams(result.url)
       const isHttp = result.url.startsWith('http://')
       const sensitive = assessment.sensitive || isSensitiveUrl(result.url)
+      const domainForLists = getRootDomain(result.hostname)
 
       if (level !== 'low') riskyCount += 1
       if (sensitive) sensitiveCount += 1
@@ -643,7 +652,7 @@ async function run(baseQuestion) {
 
       const riskInfo = {
         url: result.url,
-        domain: normalizeDomain(result.hostname),
+        domain: normalizeDomain(domainForLists),
         reasons: assessment.reasons,
         level,
         sensitive,
