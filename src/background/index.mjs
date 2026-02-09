@@ -61,6 +61,7 @@ async function getOpenAIResult(port, prompt) {
   })
 
   let outputText = ''
+  let completed = false
 
   try {
     await fetchSSE('https://api.openai.com/v1/responses', {
@@ -79,6 +80,7 @@ async function getOpenAIResult(port, prompt) {
         store: false,
       }),
       onMessage(message) {
+        if (completed) return
         let data
         try {
           data = JSON.parse(message)
@@ -99,10 +101,12 @@ async function getOpenAIResult(port, prompt) {
         }
 
         if (data.type === 'response.completed') {
+          completed = true
           port.postMessage({ answer: 'CHAT_GPTX_ANSWER_END' })
         }
 
         if (data.type === 'response.failed' || data.type === 'error') {
+          completed = true
           const messageText =
             data?.error?.message || data?.response?.error?.message || 'OpenAI API error'
           port.postMessage({ error: `OPENAI_ERROR:${messageText}` })
