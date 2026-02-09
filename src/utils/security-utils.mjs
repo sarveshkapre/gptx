@@ -56,7 +56,8 @@ export const TRACKING_PARAMS = [
 ]
 
 export function normalizeDomain(domain = '') {
-  return domain.trim().replace(/\.$/, '').replace(/^www\./, '').toLowerCase()
+  const trimmed = domain.trim().replace(/\.$/, '').toLowerCase()
+  return trimmed.replace(/^www\./, '')
 }
 
 function isValidHostname(hostname) {
