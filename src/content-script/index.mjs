@@ -3,7 +3,13 @@ import {
   getApprovedCheckIconSvg,
   getCopyIconSvg,
 } from '../constants/template-strings.mjs'
-import { buildCacheKey, normalizeEntry } from '../utils/history-utils.mjs'
+import {
+  buildCacheKey,
+  DEFAULT_HISTORY_RETENTION,
+  getHistoryKeysToPrune,
+  normalizeEntry,
+  normalizeHistoryRetention,
+} from '../utils/history-utils.mjs'
 import {
   applyUrlSafety,
   assessDomainRisk,
@@ -89,6 +95,31 @@ async function savePreferences(preferences) {
   await Browser.storage.local.set({
     gptxPreferences: preferences,
   })
+}
+
+async function loadHistoryRetention() {
+  const stored = await Browser.storage.local.get('gptxHistoryRetention')
+  const retention = {
+    ...DEFAULT_HISTORY_RETENTION,
+    ...normalizeHistoryRetention(stored.gptxHistoryRetention || {}),
+  }
+  if (!stored.gptxHistoryRetention) {
+    await Browser.storage.local.set({ gptxHistoryRetention: retention })
+  }
+  return retention
+}
+
+async function storeHistoryEntry(storageKey, entry) {
+  await Browser.storage.local.set({
+    [storageKey]: entry,
+  })
+  const retention = await loadHistoryRetention()
+  if (!retention.ttlDays && !retention.maxEntries) return
+  const allData = await Browser.storage.local.get(null)
+  const keysToRemove = getHistoryKeysToPrune(allData, retention)
+  if (keysToRemove.length) {
+    await Browser.storage.local.remove(keysToRemove)
+  }
 }
 
 async function loadSecuritySettings() {
@@ -425,14 +456,12 @@ async function run(baseQuestion) {
       setButtonsDisabled(false)
       setFollowupDisabled(false)
       setStatus('Cached answer')
-      await Browser.storage.local.set({
-        [cacheKey]: {
-          question: displayQuestion,
-          answer: legacyEntry.answer,
-          mode: preferences.mode,
-          format: preferences.format,
-          createdAt: legacyEntry.createdAt || Date.now(),
-        },
+      await storeHistoryEntry(cacheKey, {
+        question: displayQuestion,
+        answer: legacyEntry.answer,
+        mode: preferences.mode,
+        format: preferences.format,
+        createdAt: legacyEntry.createdAt || Date.now(),
       })
       return
     }
@@ -501,14 +530,12 @@ async function run(baseQuestion) {
         setFollowupDisabled(false)
         setStatus('GPTx answer')
         if (activeRequest?.cacheKey) {
-          await Browser.storage.local.set({
-            [activeRequest.cacheKey]: {
-              question: activeRequest.displayQuestion,
-              answer: previousResponse,
-              mode: activeRequest.preferences.mode,
-              format: activeRequest.preferences.format,
-              createdAt: Date.now(),
-            },
+          await storeHistoryEntry(activeRequest.cacheKey, {
+            question: activeRequest.displayQuestion,
+            answer: previousResponse,
+            mode: activeRequest.preferences.mode,
+            format: activeRequest.preferences.format,
+            createdAt: Date.now(),
           })
         }
       } else {
@@ -541,7 +568,7 @@ async function run(baseQuestion) {
   gptxFooterCopyBtn.addEventListener('click', async () => {
     const answerToCopy = previousResponse
     if (!answerToCopy) return
-  gptxFooterCopyBtn.innerHTML = `
+    gptxFooterCopyBtn.innerHTML = `
       ${getApprovedCheckIconSvg('1.2em', '1.2em', '#198754')}
       <span class="gptx-tooltip-text" id="gptx-tooltip-copied-text">Copied</span>
       `

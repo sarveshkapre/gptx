@@ -1,6 +1,7 @@
 export const DEFAULT_HISTORY_IGNORE_KEYS = new Set([
   'gptxExtensionEnabled',
   'gptxPreferences',
+  'gptxHistoryRetention',
   'gptxSecurityEnabled',
   'gptxSecurityAllowlist',
   'gptxSecurityBlocklist',
@@ -8,6 +9,13 @@ export const DEFAULT_HISTORY_IGNORE_KEYS = new Set([
   'gptxSecurityReports',
   'gptxSecurityEvents',
 ])
+
+export const DEFAULT_HISTORY_RETENTION = {
+  // 0 disables TTL pruning.
+  ttlDays: 0,
+  // 0 disables max-entry pruning.
+  maxEntries: 0,
+}
 
 export function buildCacheKey(question, preferences) {
   return `gptx:${question}::${preferences.mode}::${preferences.format}`
@@ -72,4 +80,39 @@ export function getRenderableEntries(cachedData, keysToIgnore = DEFAULT_HISTORY_
 
 export function getHistoryKeys(cachedData, keysToIgnore = DEFAULT_HISTORY_IGNORE_KEYS) {
   return getRenderableEntries(cachedData, keysToIgnore).map((entry) => entry.storageKey)
+}
+
+export function normalizeHistoryRetention(retention = {}) {
+  const ttlDaysRaw = Number(retention.ttlDays)
+  const maxEntriesRaw = Number(retention.maxEntries)
+  const ttlDays = Number.isFinite(ttlDaysRaw) ? Math.max(0, Math.floor(ttlDaysRaw)) : 0
+  const maxEntries = Number.isFinite(maxEntriesRaw) ? Math.max(0, Math.floor(maxEntriesRaw)) : 0
+  return { ttlDays, maxEntries }
+}
+
+export function getHistoryKeysToPrune(
+  cachedData,
+  retention,
+  now = Date.now(),
+  keysToIgnore = DEFAULT_HISTORY_IGNORE_KEYS,
+) {
+  const settings = { ...DEFAULT_HISTORY_RETENTION, ...normalizeHistoryRetention(retention) }
+  const entries = getRenderableEntries(cachedData, keysToIgnore)
+  const toDelete = new Set()
+
+  if (settings.ttlDays > 0) {
+    const cutoff = now - settings.ttlDays * 24 * 60 * 60 * 1000
+    entries.forEach((entry) => {
+      const createdAt = entry.createdAt || 0
+      if (createdAt < cutoff) {
+        toDelete.add(entry.storageKey)
+      }
+    })
+  }
+
+  if (settings.maxEntries > 0 && entries.length > settings.maxEntries) {
+    entries.slice(settings.maxEntries).forEach((entry) => toDelete.add(entry.storageKey))
+  }
+
+  return Array.from(toDelete)
 }

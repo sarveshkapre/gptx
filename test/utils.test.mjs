@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   buildCacheKey,
+  getHistoryKeysToPrune,
   getHistoryKeys,
   getRenderableEntries,
   normalizeEntry,
@@ -40,6 +41,7 @@ test('normalizeEntry handles legacy and modern history entries', () => {
 test('getRenderableEntries/getHistoryKeys ignore settings keys and sort newest first', () => {
   const data = {
     gptxExtensionEnabled: true,
+    gptxHistoryRetention: { ttlDays: 0, maxEntries: 0 },
     'gptx:a::summary::bullets': {
       question: 'a',
       answer: 'A',
@@ -60,6 +62,44 @@ test('getRenderableEntries/getHistoryKeys ignore settings keys and sort newest f
   assert.equal(entries.length, 2)
   assert.equal(entries[0].question, 'b')
   assert.deepEqual(getHistoryKeys(data), ['gptx:b::summary::bullets', 'gptx:a::summary::bullets'])
+})
+
+test('getHistoryKeysToPrune enforces TTL and max entry limits', () => {
+  const now = 10_000
+  const day = 24 * 60 * 60 * 1000
+  const data = {
+    gptxPreferences: { mode: 'summary' },
+    'gptx:new::summary::bullets': {
+      question: 'new',
+      answer: 'N',
+      mode: 'summary',
+      format: 'bullets',
+      createdAt: now - 1,
+    },
+    'gptx:mid::summary::bullets': {
+      question: 'mid',
+      answer: 'M',
+      mode: 'summary',
+      format: 'bullets',
+      createdAt: now - day,
+    },
+    'gptx:old::summary::bullets': {
+      question: 'old',
+      answer: 'O',
+      mode: 'summary',
+      format: 'bullets',
+      createdAt: now - 10 * day,
+    },
+  }
+
+  const ttlPrune = getHistoryKeysToPrune(data, { ttlDays: 3, maxEntries: 0 }, now)
+  assert.deepEqual(ttlPrune, ['gptx:old::summary::bullets'])
+
+  const maxPrune = getHistoryKeysToPrune(data, { ttlDays: 0, maxEntries: 2 }, now)
+  assert.deepEqual(maxPrune, ['gptx:old::summary::bullets'])
+
+  const bothPrune = getHistoryKeysToPrune(data, { ttlDays: 3, maxEntries: 1 }, now)
+  assert.deepEqual(bothPrune.sort(), ['gptx:mid::summary::bullets', 'gptx:old::summary::bullets'])
 })
 
 test('escape helpers encode HTML-special characters for text and attributes', () => {

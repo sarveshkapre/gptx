@@ -7,8 +7,6 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P0: Add data retention controls for GPT answer history (TTL + max entry count, configurable in popup and enforced on write).
-- [ ] P0: Remove `clipboardy` from browser code paths; replace with a safe `navigator.clipboard` + fallback copy helper to avoid runtime breakage and shrink bundle size.
 - [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
 - [ ] P1: Migrate ChatGPT integration away from legacy webapp backend endpoints to an officially supported OpenAI API flow with user-provided API key.
 - [ ] P1: Add baseline maintainer docs: `AGENTS.md`, `PROJECT_MEMORY.md`, `INCIDENTS.md` (minimal structure, then keep updated per cycle).
@@ -17,6 +15,10 @@
 - [ ] P3: Add a lightweight “export GPTx history” action in history UI (JSON/NDJSON) for power users and debugging.
 
 ## Implemented
+- [x] 2026-02-09: Added history retention controls (TTL days + max items) in popup and pruning on history writes.
+  Evidence: `src/utils/history-utils.mjs`, `src/popup/index.html`, `src/popup/index.mjs`, `src/content-script/index.mjs`, `test/utils.test.mjs`, `src/css/popup.css`
+- [x] 2026-02-09: Replaced Node-only clipboard handling with a browser-safe copy helper (Clipboard API + execCommand fallback).
+  Evidence: `src/utils/clipboard-utils.mjs`, `src/content-script/index.mjs`, `src/new-tab/index.mjs`, `src/chatgpt-script/index.mjs`
 - [x] 2026-02-08: Hardened extension-page rendering against injection in history/new-tab/security UI and modal reason rendering.
   Evidence: `src/constants/template-strings.mjs`, `src/new-tab/index.mjs`, `src/security-center/index.mjs`, `src/content-script/index.mjs`, `src/utils/safe-html.mjs`
 - [x] 2026-02-08: Fixed history deletion UX to remove only GPT answer records while preserving extension/security settings.

@@ -1,11 +1,30 @@
 import { getViewHistoryIcon } from '../constants/template-strings.mjs'
 import Browser from 'webextension-polyfill'
+import { DEFAULT_HISTORY_RETENTION, normalizeHistoryRetention } from '../utils/history-utils.mjs'
 
 main()
 
 const DEFAULT_PREFERENCES = {
   mode: 'summary',
   format: 'bullets',
+}
+
+async function loadHistoryRetention() {
+  const stored = await Browser.storage.local.get('gptxHistoryRetention')
+  const retention = {
+    ...DEFAULT_HISTORY_RETENTION,
+    ...normalizeHistoryRetention(stored.gptxHistoryRetention || {}),
+  }
+  if (!stored.gptxHistoryRetention) {
+    await Browser.storage.local.set({ gptxHistoryRetention: retention })
+  }
+  return retention
+}
+
+async function saveHistoryRetention(retention) {
+  await Browser.storage.local.set({
+    gptxHistoryRetention: retention,
+  })
 }
 
 async function loadPreferences() {
@@ -129,5 +148,21 @@ async function main() {
   formatSelect.addEventListener('change', async () => {
     preferences.format = formatSelect.value
     await savePreferences(preferences)
+  })
+
+  const retention = await loadHistoryRetention()
+  const ttlInput = document.getElementById('gptx-history-ttl-days')
+  const maxInput = document.getElementById('gptx-history-max-entries')
+  ttlInput.value = String(retention.ttlDays ?? 0)
+  maxInput.value = String(retention.maxEntries ?? 0)
+
+  ttlInput.addEventListener('change', async () => {
+    retention.ttlDays = Number(ttlInput.value || 0)
+    await saveHistoryRetention(normalizeHistoryRetention(retention))
+  })
+
+  maxInput.addEventListener('change', async () => {
+    retention.maxEntries = Number(maxInput.value || 0)
+    await saveHistoryRetention(normalizeHistoryRetention(retention))
   })
 }

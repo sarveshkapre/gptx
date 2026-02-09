@@ -16,7 +16,7 @@
 }
 
 .gptx-popup-body {
-  --popup-body-height: 310px;
+  --popup-body-height: 390px;
   height: var(--popup-body-height);
   width: 220px;
 }

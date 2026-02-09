@@ -66,6 +66,35 @@
             </div>
             <div class="gptx-shortcuts">Warn before visiting risky domains</div>
           </div>
+          <div class="gptx-quick-settings gptx-preferences">
+            <div class="gptx-qs-header">History</div>
+            <div class="gptx-divider"></div>
+            <div class="gptx-setting-row">
+              <label class="gptx-setting-label" for="gptx-history-ttl-days">Keep days</label>
+              <input
+                id="gptx-history-ttl-days"
+                class="gptx-select"
+                type="number"
+                min="0"
+                max="3650"
+                step="1"
+                placeholder="0"
+              />
+            </div>
+            <div class="gptx-setting-row">
+              <label class="gptx-setting-label" for="gptx-history-max-entries">Max items</label>
+              <input
+                id="gptx-history-max-entries"
+                class="gptx-select"
+                type="number"
+                min="0"
+                max="2000"
+                step="1"
+                placeholder="0"
+              />
+            </div>
+            <div class="gptx-shortcuts">0 means unlimited</div>
+          </div>
         </div>
         <div class="card-footer gptx-popup-card-footer">
           <div id="gptx-view-history" class="btn"></div>
