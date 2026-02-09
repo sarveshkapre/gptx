@@ -106,6 +106,7 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm run check:build` (pass)
 - `gh run watch 21812338096 --exit-status` (pass, GitHub Actions CI on `main`)
 - `gh run watch 21817749832 --exit-status` (pass, GitHub Actions CI on `main`)
+- `gh run watch 21817818620 --exit-status` (pass, GitHub Actions CI on `main`)
 
 ## Follow-ups
 - Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
