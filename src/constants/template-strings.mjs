@@ -14,6 +14,15 @@ export function getCopyIconSvg(width = '1em', height = '1em', color = 'red') {
   </svg>
   `
 }
+
+export function getMarkdownIconSvg(width = '1em', height = '1em', color = 'red') {
+  // Simple "M" glyph for Markdown; used as a visual distinguisher from regular copy.
+  return `
+  <svg id="markdown-icon-svg" width=${width} height=${height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 18V6h2.8l3.2 5.2L15.2 6H18v12h-2V9.6l-3.2 5.1h-1.6L8 9.6V18H6z" fill="${color}"/>
+  </svg>
+  `
+}
 export function getNewTabIconSvg(width = '1em', height = '1em', color = 'red') {
   return `
   <svg id="new-tab-svg" width=${width} height=${height} fill="${color}" viewBox="0 0 44 44"  xmlns="http://www.w3.org/2000/svg">
@@ -100,6 +109,10 @@ export function getResultCardTemplate(iconColor) {
     <div class="btn gptx-footer-btns" id="gptx-footer-copy-btn">
       ${getCopyIconSvg('1.2em', '1.2em', iconColor)}
       <span class="gptx-tooltip-text" id="gptx-tooltip-copy-text">Copy</span>
+    </div>
+    <div class="btn gptx-footer-btns is-markdown" id="gptx-footer-copy-md-btn">
+      ${getMarkdownIconSvg('1.2em', '1.2em', iconColor)}
+      <span class="gptx-tooltip-text" id="gptx-tooltip-copy-md-text">Copy Markdown</span>
     </div>
     <div class="btn gptx-footer-btns" id="gptx-footer-refresh-btn">
       ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}

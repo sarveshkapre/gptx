@@ -345,6 +345,7 @@ async function run(baseQuestion) {
   const gptxSecurityBannerElem = document.getElementById('gptx-security-banner')
   const gptxFooterRefreshBtn = document.getElementById('gptx-footer-refresh-btn')
   const gptxFooterCopyBtn = document.getElementById('gptx-footer-copy-btn')
+  const gptxFooterCopyMdBtn = document.getElementById('gptx-footer-copy-md-btn')
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
   const gptxFooterReportBtn = document.getElementById('gptx-footer-report-btn')
   const gptxFollowupInput = document.getElementById('gptx-followup-input')
@@ -359,6 +360,11 @@ async function run(baseQuestion) {
   const riskMap = new WeakMap()
 
   const markdown = new MarkdownIt()
+  const STREAM_RENDER_INTERVAL_MS = 90
+  let renderTimer = null
+  let lastRenderAt = 0
+  let pendingRenderText = ''
+  let pendingRenderStartTime = 0
 
   function setStatus(text) {
     gptxLoadingParaElem.textContent = text
@@ -372,11 +378,13 @@ async function run(baseQuestion) {
     if (disabled) {
       gptxFooterRefreshBtn.classList.add('gptx-disable-btn')
       gptxFooterCopyBtn.classList.add('gptx-disable-btn')
+      if (gptxFooterCopyMdBtn) gptxFooterCopyMdBtn.classList.add('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.add('gptx-disable-btn')
       if (gptxFooterReportBtn) gptxFooterReportBtn.classList.add('gptx-disable-btn')
     } else {
       gptxFooterRefreshBtn.classList.remove('gptx-disable-btn')
       gptxFooterCopyBtn.classList.remove('gptx-disable-btn')
+      if (gptxFooterCopyMdBtn) gptxFooterCopyMdBtn.classList.remove('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.remove('gptx-disable-btn')
       if (gptxFooterReportBtn) gptxFooterReportBtn.classList.remove('gptx-disable-btn')
     }
@@ -489,10 +497,38 @@ async function run(baseQuestion) {
   }
 
   function updateResultDOM(text, startTime) {
-    gptxTimeParaElem.style.display = 'inline'
+    // One-shot render for cached answers.
+    renderAnswer(text, startTime, true)
+  }
+
+  function renderAnswer(text, startTime, finalize) {
+    pendingRenderText = text
+    pendingRenderStartTime = startTime || performance.now()
+    if (renderTimer) {
+      if (finalize) {
+        clearTimeout(renderTimer)
+        renderTimer = null
+        flushRender(true)
+      }
+      return
+    }
+
+    const now = performance.now()
+    const delay = finalize ? 0 : Math.max(0, STREAM_RENDER_INTERVAL_MS - (now - lastRenderAt))
+    renderTimer = setTimeout(() => {
+      renderTimer = null
+      flushRender(finalize)
+    }, delay)
+  }
+
+  function flushRender(finalize) {
+    const text = pendingRenderText
+    lastRenderAt = performance.now()
     gptxResponseBodyElem.innerHTML = markdown.render(text)
+    if (!finalize) return
+    gptxTimeParaElem.style.display = 'inline'
     const endTime = performance.now()
-    gptxTimeParaElem.textContent = `(${((endTime - startTime) / 1000).toFixed(2)}s)`
+    gptxTimeParaElem.textContent = `(${((endTime - pendingRenderStartTime) / 1000).toFixed(2)}s)`
   }
 
   function attachChipListeners() {
@@ -546,6 +582,7 @@ async function run(baseQuestion) {
   port.onMessage.addListener(async (msg) => {
     if (msg.answer) {
       if (msg.answer === 'CHAT_GPTX_ANSWER_END') {
+        renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
         setButtonsDisabled(false)
         setFollowupDisabled(false)
         setStatus('GPTx answer')
@@ -560,7 +597,8 @@ async function run(baseQuestion) {
         }
       } else {
         previousResponse = msg.answer
-        updateResultDOM(msg.answer, activeRequest?.startTime || performance.now())
+        // Rendering markdown is expensive; throttle updates to reduce jank while streaming.
+        renderAnswer(msg.answer, activeRequest?.startTime || performance.now(), false)
       }
     } else if (msg.error === 'UNAUTHORIZED') {
       setButtonsDisabled(false)
@@ -611,7 +649,7 @@ async function run(baseQuestion) {
   })
 
   gptxFooterCopyBtn.addEventListener('click', async () => {
-    const answerToCopy = previousResponse
+    const answerToCopy = String(gptxResponseBodyElem?.innerText || '').trim() || previousResponse
     if (!answerToCopy) return
     gptxFooterCopyBtn.innerHTML = `
       ${getApprovedCheckIconSvg('1.2em', '1.2em', '#198754')}
@@ -625,6 +663,22 @@ async function run(baseQuestion) {
     }, 700)
     copyText(answerToCopy)
   })
+
+  if (gptxFooterCopyMdBtn) {
+    gptxFooterCopyMdBtn.addEventListener('click', async () => {
+      const answerToCopy = previousResponse
+      if (!answerToCopy) return
+      const tooltip = gptxFooterCopyMdBtn.querySelector('.gptx-tooltip-text')
+      if (tooltip) {
+        const original = tooltip.textContent
+        tooltip.textContent = 'Copied'
+        setTimeout(() => {
+          tooltip.textContent = original || 'Copy Markdown'
+        }, 700)
+      }
+      copyText(answerToCopy)
+    })
+  }
 
   gptxFooterNewTabBtn.addEventListener('click', () => {
     if (!activeRequest?.cacheKey) return
