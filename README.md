@@ -71,6 +71,12 @@ For installing in Google Chrome
 2. Customize your settings by selecting the desired options and inputting any necessary information
 3. The extension will now be active and will automatically perform the chosen functions while browsing
 
+### History Retention
+
+GPTx history is stored in extension local storage. You can optionally limit retention in the popup:
+- Keep days: delete entries older than N days (0 = unlimited)
+- Max items: keep only the most recent N entries (0 = unlimited)
+
 ### Security Center
 
 Open the popup → “Security center” to configure:
