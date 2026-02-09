@@ -7,12 +7,16 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
+- [ ] P0: Add an officially supported OpenAI API mode (Responses API, streaming) using a user-provided API key and model setting; keep ChatGPT-web session mode as fallback.
+- [ ] P1: Add a lightweight build artifact checker (validate `build/chromium/manifest.json` references exist) and run it in CI for fast packaging regressions.
 - [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
-- [ ] P1: Migrate ChatGPT integration away from legacy webapp session endpoints to an officially supported OpenAI API flow with user-provided API key.
-- [ ] P2: Add a lightweight build artifact checker (manifest references exist in `build/chromium/`) for faster regressions than a full browser run.
-- [ ] P2: Add a one-click “Report incorrect/unsafe answer” feedback action that stores a local report bundle (query + mode/format + answer + timestamp).
-- [ ] P3: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
+- [ ] P1: Add a one-click “Report incorrect/unsafe answer” action on the result card that stores a local report bundle (query + mode/format + answer + timestamp + page URL).
+- [ ] P2: Throttle streaming UI updates (markdown render) to reduce jank and reflow while still feeling realtime.
+- [ ] P2: Add a “Model” selector (string input w/ sane default) and surface helpful error states (401/429) when OpenAI API requests fail.
+- [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
+- [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
+- [ ] P3: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
 
 ## Implemented
 - [x] 2026-02-09: Normalize/validate Security Center allowlist + blocklist inputs (accept domains or URLs, canonicalize, dedupe, reject invalid).
