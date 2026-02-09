@@ -291,6 +291,15 @@ async function storeSecurityEvent(event) {
   })
 }
 
+async function storeAnswerReport(report) {
+  const stored = await Browser.storage.local.get('gptxAnswerReports')
+  const reports = stored.gptxAnswerReports || []
+  reports.unshift(report)
+  await Browser.storage.local.set({
+    gptxAnswerReports: reports.slice(0, 100),
+  })
+}
+
 async function run(baseQuestion) {
   const isEnabledObj = await Browser.storage.local.get('gptxExtensionEnabled')
   let gptxExtensionEnabled = isEnabledObj.gptxExtensionEnabled
@@ -337,6 +346,7 @@ async function run(baseQuestion) {
   const gptxFooterRefreshBtn = document.getElementById('gptx-footer-refresh-btn')
   const gptxFooterCopyBtn = document.getElementById('gptx-footer-copy-btn')
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
+  const gptxFooterReportBtn = document.getElementById('gptx-footer-report-btn')
   const gptxFollowupInput = document.getElementById('gptx-followup-input')
   const gptxFollowupBtn = document.getElementById('gptx-followup-btn')
   const securityCenterUrl = Browser.runtime.getURL('security-center.html')
@@ -363,10 +373,12 @@ async function run(baseQuestion) {
       gptxFooterRefreshBtn.classList.add('gptx-disable-btn')
       gptxFooterCopyBtn.classList.add('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.add('gptx-disable-btn')
+      if (gptxFooterReportBtn) gptxFooterReportBtn.classList.add('gptx-disable-btn')
     } else {
       gptxFooterRefreshBtn.classList.remove('gptx-disable-btn')
       gptxFooterCopyBtn.classList.remove('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.remove('gptx-disable-btn')
+      if (gptxFooterReportBtn) gptxFooterReportBtn.classList.remove('gptx-disable-btn')
     }
   }
 
@@ -618,6 +630,30 @@ async function run(baseQuestion) {
     if (!activeRequest?.cacheKey) return
     port.postMessage({ GPTX_CREATE_NEW_TAB: activeRequest.cacheKey })
   })
+
+  if (gptxFooterReportBtn) {
+    gptxFooterReportBtn.addEventListener('click', async () => {
+      if (!activeRequest?.displayQuestion || !previousResponse) return
+      const report = {
+        id: typeof crypto?.randomUUID === 'function' ? crypto.randomUUID() : String(Date.now()),
+        question: activeRequest.displayQuestion,
+        answer: previousResponse,
+        mode: activeRequest.preferences?.mode || preferences.mode,
+        format: activeRequest.preferences?.format || preferences.format,
+        pageUrl: location.href,
+        createdAt: Date.now(),
+      }
+      await storeAnswerReport(report)
+      const tooltip = gptxFooterReportBtn.querySelector('.gptx-tooltip-text')
+      if (tooltip) {
+        const original = tooltip.textContent
+        tooltip.textContent = 'Saved'
+        setTimeout(() => {
+          tooltip.textContent = original || 'Report'
+        }, 900)
+      }
+    })
+  }
 
   gptxFollowupBtn.addEventListener('click', handleFollowUp)
   gptxFollowupInput.addEventListener('keydown', (event) => {

@@ -30,6 +30,14 @@ export function getApprovedCheckIconSvg(width = '1em', height = '1em', color = '
   `
 }
 
+export function getReportIconSvg(width = '1em', height = '1em', color = 'red') {
+  return `
+  <svg width=${width} height=${height} fill="${color}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 3h2v18H4V3zm4 1h10.5l-.9 3H21v10h-9.9l.9-3H8V4z" />
+  </svg>
+  `
+}
+
 export function getViewHistoryIcon(width = '1em', height = '1em', color = 'red') {
   return `
   <svg id="view-history-svg" width=${width} height=${height} fill="${color}" viewBox="0 0 22 22">
@@ -81,6 +89,10 @@ export function getResultCardTemplate(iconColor) {
     <div class="gptx-followup-hint">Tip: / to focus • Enter to ask • Shift+Enter for new line</div>
   </div>
   <div id="gptx-card-footer">
+    <div class="btn gptx-footer-btns" id="gptx-footer-report-btn">
+      ${getReportIconSvg('1.2em', '1.2em', iconColor)}
+      <span class="gptx-tooltip-text">Report</span>
+    </div>
     <div class="btn gptx-footer-btns" id="gptx-footer-new-tab-btn">
       ${getNewTabIconSvg('1.2em', '1.2em', iconColor)}
       <span class="gptx-tooltip-text">Open in new tab</span>
