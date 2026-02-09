@@ -203,41 +203,94 @@ async function main() {
   const openaiSaveBtn = document.getElementById('gptx-openai-save')
   const openaiClearBtn = document.getElementById('gptx-openai-clear')
   const openaiStatus = document.getElementById('gptx-openai-status')
+  let hasApiKey = Boolean(openai.apiKey)
 
   if (openaiModelInput) {
     openaiModelInput.value = openai.model
-    openaiModelInput.addEventListener('change', async () => {
-      const nextModel = String(openaiModelInput.value || '').trim() || DEFAULT_OPENAI_SETTINGS.model
-      openaiModelInput.value = nextModel
-      await saveOpenAIModel(nextModel)
-    })
   }
 
-  function setOpenAIStatus(text) {
+  function setOpenAIStatus(text, variant = 'neutral') {
     if (!openaiStatus) return
     openaiStatus.textContent = text
+    openaiStatus.classList.toggle('is-error', variant === 'error')
+    openaiStatus.classList.toggle('is-ok', variant === 'ok')
   }
 
-  setOpenAIStatus(openai.apiKey ? 'Key set' : 'Not set')
+  function validateModel(raw) {
+    const model = String(raw || '').trim()
+    if (!model) return { ok: false, message: 'Model required' }
+    if (model.length > 128) return { ok: false, message: 'Model too long' }
+    if (/\s/.test(model)) return { ok: false, message: 'No spaces in model' }
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(model)) {
+      return { ok: false, message: 'Invalid model' }
+    }
+    return { ok: true, value: model }
+  }
+
+  function validateApiKey(raw) {
+    const apiKey = String(raw || '').trim()
+    if (!apiKey) return { ok: false, message: 'Enter key' }
+    if (/\s/.test(apiKey)) return { ok: false, message: 'No spaces in key' }
+    if (!apiKey.startsWith('sk-')) return { ok: false, message: 'Expected sk-...' }
+    if (apiKey.length < 20) return { ok: false, message: 'Key too short' }
+    return { ok: true, value: apiKey }
+  }
+
+  function setInvalid(el, invalid) {
+    if (!el) return
+    el.classList.toggle('is-invalid', Boolean(invalid))
+  }
+
+  const initialModelValidation = validateModel(openai.model)
+  if (openaiModelInput) setInvalid(openaiModelInput, !initialModelValidation.ok)
+
+  setOpenAIStatus(hasApiKey ? 'Key set' : 'Not set', hasApiKey ? 'ok' : 'neutral')
 
   if (openaiSaveBtn && openaiKeyInput) {
     openaiSaveBtn.addEventListener('click', async () => {
-      const apiKey = String(openaiKeyInput.value || '').trim()
-      if (!apiKey) {
-        setOpenAIStatus('Enter key')
+      const apiKey = String(openaiKeyInput.value || '')
+      const validation = validateApiKey(apiKey)
+      setInvalid(openaiKeyInput, !validation.ok)
+      if (!validation.ok) {
+        setOpenAIStatus(validation.message, 'error')
         return
       }
-      await saveOpenAIApiKey(apiKey)
+      await saveOpenAIApiKey(validation.value)
+      hasApiKey = true
       openaiKeyInput.value = ''
-      setOpenAIStatus('Saved')
+      setInvalid(openaiKeyInput, false)
+      setOpenAIStatus('Saved', 'ok')
     })
   }
 
   if (openaiClearBtn) {
     openaiClearBtn.addEventListener('click', async () => {
       await clearOpenAIApiKey()
+      hasApiKey = false
       if (openaiKeyInput) openaiKeyInput.value = ''
-      setOpenAIStatus('Cleared')
+      if (openaiKeyInput) setInvalid(openaiKeyInput, false)
+      setOpenAIStatus('Cleared', 'neutral')
+    })
+  }
+
+  if (openaiModelInput) {
+    openaiModelInput.addEventListener('input', () => {
+      // Live feedback only; persistence happens on change when valid.
+      const validation = validateModel(openaiModelInput.value)
+      setInvalid(openaiModelInput, !validation.ok)
+      if (!validation.ok) return
+      // Avoid flipping status to "ok" while the user is typing a key.
+    })
+    openaiModelInput.addEventListener('change', async () => {
+      const validation = validateModel(openaiModelInput.value)
+      setInvalid(openaiModelInput, !validation.ok)
+      if (!validation.ok) {
+        setOpenAIStatus(validation.message, 'error')
+        return
+      }
+      await saveOpenAIModel(validation.value)
+      openaiModelInput.value = validation.value
+      setOpenAIStatus(hasApiKey ? 'Key set' : 'Not set', hasApiKey ? 'ok' : 'neutral')
     })
   }
 }

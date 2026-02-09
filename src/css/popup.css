@@ -93,6 +93,16 @@
   opacity: 0.7;
   margin-left: auto;
 }
+.gptx-api-status.is-error {
+  opacity: 1;
+  color: #d93025;
+  font-weight: 600;
+}
+.gptx-api-status.is-ok {
+  opacity: 1;
+  color: #198754;
+  font-weight: 600;
+}
 .gptx-setting-label {
   font-size: 12px;
   color: var(--gptx-text-color);
@@ -104,6 +114,10 @@
   color: var(--gptx-text-color);
   padding: 3px 6px;
   font-size: 12px;
+}
+.gptx-select.is-invalid {
+  border-color: rgba(217, 48, 37, 0.8);
+  outline: 2px solid rgba(217, 48, 37, 0.2);
 }
 .gptx-select:focus {
   outline: 2px solid rgba(26, 115, 232, 0.25);
