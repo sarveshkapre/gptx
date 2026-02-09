@@ -7,18 +7,20 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P0: Add an officially supported OpenAI API mode (Responses API, streaming) using a user-provided API key and model setting; keep ChatGPT-web session mode as fallback.
-- [ ] P1: Add a lightweight build artifact checker (validate `build/chromium/manifest.json` references exist) and run it in CI for fast packaging regressions.
 - [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
-- [ ] P1: Add a one-click “Report incorrect/unsafe answer” action on the result card that stores a local report bundle (query + mode/format + answer + timestamp + page URL).
 - [ ] P2: Throttle streaming UI updates (markdown render) to reduce jank and reflow while still feeling realtime.
-- [ ] P2: Add a “Model” selector (string input w/ sane default) and surface helpful error states (401/429) when OpenAI API requests fail.
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
 - [ ] P3: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
 
 ## Implemented
+- [x] 2026-02-09: Add optional OpenAI API mode (Responses API, streaming) using a user-provided API key + model setting, with ChatGPT-web session fallback.
+  Evidence: `src/background/index.mjs`, `src/popup/index.html`, `src/popup/index.mjs`, `src/content-script/index.mjs`, `README.md`
+- [x] 2026-02-09: Add a lightweight build artifact checker (validate `build/chromium/manifest.json` references exist) and run it in CI.
+  Evidence: `scripts/check-build-artifacts.mjs`, `.github/workflows/ci.yml`, `package.json`
+- [x] 2026-02-09: Add a one-click “Report incorrect/unsafe answer” action on the result card that stores a local report bundle in extension storage.
+  Evidence: `src/constants/template-strings.mjs`, `src/content-script/index.mjs`
 - [x] 2026-02-09: Normalize/validate Security Center allowlist + blocklist inputs (accept domains or URLs, canonicalize, dedupe, reject invalid).
   Evidence: `src/utils/security-utils.mjs`, `src/security-center/index.mjs`, `test/utils.test.mjs`
 - [x] 2026-02-09: Make allowlist/blocklist matching work for both exact hostnames and root domains; when “Allow”ing from the warning modal, store the root domain.
@@ -59,6 +61,7 @@
 - Utility extraction (`history-utils`, `security-utils`, `safe-html`) reduces duplicate logic and makes critical behavior testable.
 - Market scan (Feb 2026): competing “AI for Google” extensions commonly emphasize multi-site coverage, summarize/page-reading, and model choice; GPTx’s Security Center is a potential differentiator if it stays robust and low-friction.
   Sources (untrusted): https://chromewebstore.google.com/detail/sider-chatgpt-sidebar-%2B-g/difoiogjjojoaoomphldepapgpbgkhkb, https://chromewebstore.google.com/detail/perplexity-ai-search/bnaffjbjpgiagpondjlnneblepbdchol, https://harpa.ai/, https://chromewebstore.google.com/detail/chatgpt-for-google/pjhdflpjemjalkidecigcjcamkbllhoj, https://www.getmerlin.in/en, https://www.techradar.com/pro/security/this-new-malware-campaign-is-stealing-chat-logs-via-chrome-extensions
+- Takeaway: using an official API mode (user-provided key) reduces brittleness versus relying on ChatGPT web session endpoints; keeping the extension low-permission and privacy-forward helps differentiate amid growing “malicious extension” reporting.
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

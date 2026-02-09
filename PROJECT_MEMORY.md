@@ -60,6 +60,30 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Confidence: High
 - Trust label: Local
 
+### Decision: Add CI packaging regression guard (manifest artifact checker)
+- Why: Extension builds can silently drift (missing JS/CSS/icon references); validating `build/chromium/manifest.json` references in CI catches broken packages early.
+- Evidence: `npm run build` + `npm run check:build` pass locally; GitHub Actions run includes the new step and is green.
+- Implementation: added `scripts/check-build-artifacts.mjs`, `npm run check:build`, and CI step.
+- Commit: `725900f`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Add optional OpenAI Responses API streaming mode (user-provided key + model)
+- Why: ChatGPT web-session endpoints are brittle and can break without warning; offering an official OpenAI API path improves long-term reliability and user control.
+- Evidence: local lint/test/build/check pass; GitHub Actions CI green after push.
+- Implementation: popup OpenAI settings UI + background streaming via `https://api.openai.com/v1/responses` with fallback to ChatGPT session mode.
+- Commit: `dd8e021`
+- Confidence: Medium
+- Trust label: Local
+
+### Decision: Add local “Report answer” capture on result card
+- Why: Enables lightweight user feedback/debug bundles without any server-side collection; useful for triage and future UX iteration.
+- Evidence: local lint/test/build/check pass; GitHub Actions CI green after push.
+- Implementation: report button on result card + store bundles in `storage.local` under `gptxAnswerReports`.
+- Commit: `0b2b509`
+- Confidence: High
+- Trust label: Local
+
 ### Mistakes And Fixes: Domain normalization didn’t strip `WWW.` when input was mixed case
 - Root cause: `normalizeDomain` removed `www.` before lowercasing, so `WWW.Example.com` was not canonicalized.
 - Fix: lowercase first, then strip `www.`.
@@ -67,12 +91,21 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Commit: `c6467a7`
 - Trust label: Local
 
+### Mistakes And Fixes: Parallel git commits caused a transient `.git/index.lock`
+- Root cause: attempted to run two `git commit` commands concurrently.
+- Fix: reran the second commit after the first completed.
+- Prevention: do not parallelize git write operations (commit/push/tag); run them sequentially.
+- Commit: `725900f`
+- Trust label: Local
+
 ### Verification Evidence
 - `npm ci` (pass, 0 vulnerabilities)
 - `npm run lint` (pass)
 - `npm test` (pass)
 - `npm run build` (pass)
+- `npm run check:build` (pass)
 - `gh run watch 21812338096 --exit-status` (pass, GitHub Actions CI on `main`)
+- `gh run watch 21817749832 --exit-status` (pass, GitHub Actions CI on `main`)
 
 ## Follow-ups
 - Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
