@@ -7,14 +7,19 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
+- [ ] P0 (Selected): Add an end-to-end extension smoke test (Playwright + Chromium extension loading) that verifies popup/history/security pages render and basic controls exist; run in CI under `xvfb`.
 - [ ] P2: Throttle streaming UI updates (markdown render) to reduce jank and reflow while still feeling realtime.
+- [ ] P2: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
-- [ ] P3: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
+- [ ] P3: Validate OpenAI settings input (model string + API key format sanity checks) and show clearer error states.
 
 ## Implemented
+- [x] 2026-02-09: Reduce packaged extension size by stripping Bootstrap CSS sourcemap references and no longer shipping `bootstrap.min.css.map`.
+  Evidence: `build.mjs` and `build/chromium/bootstrap.min.css` (no `sourceMappingURL`), plus `npm run build`
+- [x] 2026-02-09: Remove noisy popup `console.log` calls on enable/disable toggle.
+  Evidence: `src/popup/index.mjs` and `npm run lint`
 - [x] 2026-02-09: Add optional OpenAI API mode (Responses API, streaming) using a user-provided API key + model setting, with ChatGPT-web session fallback.
   Evidence: `src/background/index.mjs`, `src/popup/index.html`, `src/popup/index.mjs`, `src/content-script/index.mjs`, `README.md`
 - [x] 2026-02-09: Add a lightweight build artifact checker (validate `build/chromium/manifest.json` references exist) and run it in CI.

@@ -125,7 +125,6 @@ async function main() {
         })
         .then(() => {
           gptxExtensionStatusCheckLabel.innerHTML = 'Pause GPTx'
-          console.log('gptx extension enabled')
         })
     } else {
       // Disable the extension
@@ -135,7 +134,6 @@ async function main() {
         })
         .then(() => {
           gptxExtensionStatusCheckLabel.innerHTML = 'Unpause GPTx'
-          console.log('gptx extension disabled')
         })
     }
   })

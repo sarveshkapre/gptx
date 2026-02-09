@@ -3,6 +3,7 @@ import esbuild from 'esbuild'
 import fs, { promises as fsPromises } from 'fs'
 
 const outdir = 'build'
+const BOOTSTRAP_SOURCEMAP_RE = /\/\*#\s*sourceMappingURL=bootstrap\.min\.css\.map\s*\*\//g
 
 async function deleteOldDir() {
   await fsPromises.rm(outdir, { recursive: true, force: true })
@@ -43,6 +44,12 @@ async function copyFiles(entryPoints, targetDir) {
   )
 }
 
+async function writeBootstrapCssWithoutSourceMap(targetDir) {
+  const css = await fsPromises.readFile('src/css/bootstrap.min.css', 'utf8')
+  const stripped = css.replace(BOOTSTRAP_SOURCEMAP_RE, '').trimEnd() + '\n'
+  await fsPromises.writeFile(`${targetDir}/bootstrap.min.css`, stripped, 'utf8')
+}
+
 async function build() {
   await deleteOldDir()
   await runEsbuild()
@@ -61,7 +68,6 @@ async function build() {
     { src: 'src/security-center/index.html', dst: 'security-center.html' },
     { src: 'src/css/github-markdown.css', dst: 'github-markdown.css' },
     { src: 'src/css/bootstrap.min.css', dst: 'bootstrap.min.css' },
-    { src: 'src/css/bootstrap.min.css.map', dst: 'bootstrap.min.css.map' },
     { src: 'src/css/result-card.css', dst: 'result-card.css' },
     { src: 'src/css/popup.css', dst: 'popup.css' },
     { src: 'src/css/new-tab.css', dst: 'new-tab.css' },
@@ -78,6 +84,7 @@ async function build() {
     [...commonFiles, { src: 'src/manifest.json', dst: 'manifest.json' }],
     `./${outdir}/chromium`,
   )
+  await writeBootstrapCssWithoutSourceMap(`./${outdir}/chromium`)
 
   await zipFolder(`./${outdir}/chromium`)
 
@@ -86,6 +93,7 @@ async function build() {
     [...commonFiles, { src: 'src/manifest.v2.json', dst: 'manifest.json' }],
     `./${outdir}/firefox`,
   )
+  await writeBootstrapCssWithoutSourceMap(`./${outdir}/firefox`)
 
   await zipFolder(`./${outdir}/firefox`)
 }
