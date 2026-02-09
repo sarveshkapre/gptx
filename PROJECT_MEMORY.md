@@ -20,7 +20,21 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Confidence: High
 - Trust label: Local
 
+### Decision: Add baseline maintainer docs and trackers in-repo
+- Why: Make the maintenance contract and change memory explicit and reviewable.
+- Evidence: docs added; local checks pass.
+- Implementation: `AGENTS.md`, `PROJECT_MEMORY.md`, `INCIDENTS.md`, README update.
+- Commit: `891b542`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Keep `npm audit` clean by upgrading `esbuild`
+- Why: Reduce supply-chain risk and keep CI free of known vulnerabilities; esbuild is build-time only here.
+- Evidence: `npm audit` reports 0 vulnerabilities; build still succeeds.
+- Implementation: dependency bump + lockfile refresh.
+- Commit: `b262cd3`
+- Confidence: High
+- Trust label: Local
+
 ## Follow-ups
 - Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
-- Consider upgrading build deps flagged by `npm audit` (esbuild, cross-spawn, etc.) when safe.
-
