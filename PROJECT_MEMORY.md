@@ -72,6 +72,7 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm run lint` (pass)
 - `npm test` (pass)
 - `npm run build` (pass)
+- `gh run watch 21812338096 --exit-status` (pass, GitHub Actions CI on `main`)
 
 ## Follow-ups
 - Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
