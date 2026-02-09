@@ -30,3 +30,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Check build artifacts
+        run: npm run check:build

@@ -7,6 +7,7 @@
   "license": "ISC",
   "scripts": {
     "build": "node build.mjs",
+    "check:build": "node scripts/check-build-artifacts.mjs build/chromium",
     "test": "node --test",
     "lint": "eslint --ext .js,.mjs src test build.mjs",
     "lint:fix": "eslint --ext .js,.mjs src test build.mjs --fix"
