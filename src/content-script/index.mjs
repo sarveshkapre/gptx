@@ -12,9 +12,9 @@ import {
   isSensitiveUrl,
   normalizeDomain,
 } from '../utils/security-utils.mjs'
+import { copyText } from '../utils/clipboard-utils.mjs'
 import MarkdownIt from 'markdown-it'
 import Browser from 'webextension-polyfill'
-import clipboard from 'clipboardy'
 
 const DEFAULT_PREFERENCES = {
   mode: 'summary',
@@ -541,7 +541,7 @@ async function run(baseQuestion) {
   gptxFooterCopyBtn.addEventListener('click', async () => {
     const answerToCopy = previousResponse
     if (!answerToCopy) return
-    gptxFooterCopyBtn.innerHTML = `
+  gptxFooterCopyBtn.innerHTML = `
       ${getApprovedCheckIconSvg('1.2em', '1.2em', '#198754')}
       <span class="gptx-tooltip-text" id="gptx-tooltip-copied-text">Copied</span>
       `
@@ -551,9 +551,7 @@ async function run(baseQuestion) {
         <span class="gptx-tooltip-text" id="gptx-tooltip-copy-text">Copy</span>
         `
     }, 700)
-    clipboard.write(answerToCopy).then(() => {
-      console.log('gptx result copied')
-    })
+    copyText(answerToCopy)
   })
 
   gptxFooterNewTabBtn.addEventListener('click', () => {
@@ -735,7 +733,7 @@ async function run(baseQuestion) {
         timestamp: Date.now(),
       }
       await storeSecurityReport(report)
-      clipboard.write(JSON.stringify(report, null, 2))
+      copyText(JSON.stringify(report, null, 2))
       await storeSecurityEvent({
         type: 'action',
         action: 'report',

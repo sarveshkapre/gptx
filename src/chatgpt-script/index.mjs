@@ -3,8 +3,8 @@
  * copying all Question-Answers to clipboard
  * copying only Answers to clipboard
  */
-import clipboard from 'clipboardy'
 import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/template-strings.mjs'
+import { copyText } from '../utils/clipboard-utils.mjs'
 
 const navElem = document.getElementsByTagName('nav')['0']
 // created copy entire thread button
@@ -51,9 +51,7 @@ copyQAElem.addEventListener('click', () => {
         index % 2 === 0 ? '\n' : divider
       }`
     })
-    clipboard.write(entireThread).then(() => {
-      console.log('gptx: chatgpt entire thread copied')
-    })
+    copyText(entireThread)
   }
 })
 
@@ -73,8 +71,6 @@ copyAnswersElem.addEventListener('click', () => {
     Object.keys(onlyAnswerElems).forEach((key, index) => {
       entireThread += `${index + 1} => ${onlyAnswerElems[key].outerText}\n\n\n`
     })
-    clipboard.write(entireThread).then(() => {
-      console.log('gptx: chatgpt all answers copied')
-    })
+    copyText(entireThread)
   }
 })

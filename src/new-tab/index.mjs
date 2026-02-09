@@ -2,10 +2,10 @@
  * Open ChatGPT results in new tab
  */
 import Browser from 'webextension-polyfill'
-import clipboard from 'clipboardy'
 import MarkdownIt from 'markdown-it'
 import { getCopyIconSvg, getApprovedCheckIconSvg } from '../constants/template-strings.mjs'
 import { formatEntryMeta, normalizeEntry } from '../utils/history-utils.mjs'
+import { copyText } from '../utils/clipboard-utils.mjs'
 
 // const gptxCopyIcon = document.getElementById('gptx-copy-icon')
 // gptxCopyIcon.innerHTML = getCopyIconSvg('1.2em', '1.2em', 'white')
@@ -38,9 +38,7 @@ gptxCopyBtn.addEventListener('click', () => {
   const gptxNTQuestion = document.getElementById('gptx-nt-question')
   const gptxNTResponseBody = document.getElementById('gptx-nt-response-body')
   const entireThread = `${gptxNTQuestion.innerText}\n\n${gptxNTResponseBody.innerText}\n`
-  clipboard.write(entireThread).then(() => {
-    console.log('gptx: chatgpt entire thread copied')
-  })
+  copyText(entireThread)
 })
 
 let question = null
