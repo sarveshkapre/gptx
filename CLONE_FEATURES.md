@@ -7,14 +7,18 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P2: Throttle streaming UI updates (markdown render) to reduce jank and reflow while still feeling realtime.
-- [ ] P2: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
+- [ ] P2: Improve OpenAI API error UX (surface common causes like invalid model / insufficient quota with safe, non-leaky messaging).
+- [ ] P2: Add “Stop generating” (cancel stream) in the result card footer.
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
-- [ ] P3: Validate OpenAI settings input (model string + API key format sanity checks) and show clearer error states.
+- [ ] P3: Add a per-entry “Copy link + answer” share bundle for local support/debugging (no server upload).
 
 ## Implemented
+- [x] 2026-02-09: Throttle streaming markdown renders to reduce UI jank; update “Copy” to copy rendered plaintext and add “Copy Markdown” to copy the raw markdown answer.
+  Evidence: `src/content-script/index.mjs`, `src/constants/template-strings.mjs`, `src/css/result-card.css`, `npm run lint`, `npm test`, `npm run build`
+- [x] 2026-02-09: Validate OpenAI settings input in popup (model string + API key sanity checks) and show clearer error states.
+  Evidence: `src/popup/index.mjs`, `src/css/popup.css`, `npm run lint`, `npm test`, `npm run build`
 - [x] 2026-02-09: Add an end-to-end extension smoke test (Playwright) that loads the MV3 extension and verifies popup/history/security pages render; runs in CI under `xvfb`.
   Evidence: `test/extension-smoke.test.mjs`, `.github/workflows/ci.yml`, `package.json`, `npm run test:e2e`
 - [x] 2026-02-09: Reduce packaged extension size by stripping Bootstrap CSS sourcemap references and no longer shipping `bootstrap.min.css.map`.
@@ -68,6 +72,8 @@
 - Market scan (Feb 2026): competing “AI for Google” extensions commonly emphasize multi-site coverage, summarize/page-reading, and model choice; GPTx’s Security Center is a potential differentiator if it stays robust and low-friction.
   Sources (untrusted): https://chromewebstore.google.com/detail/sider-chatgpt-sidebar-%2B-g/difoiogjjojoaoomphldepapgpbgkhkb, https://chromewebstore.google.com/detail/perplexity-ai-search/bnaffjbjpgiagpondjlnneblepbdchol, https://harpa.ai/, https://chromewebstore.google.com/detail/chatgpt-for-google/pjhdflpjemjalkidecigcjcamkbllhoj, https://www.getmerlin.in/en, https://www.techradar.com/pro/security/this-new-malware-campaign-is-stealing-chat-logs-via-chrome-extensions
 - Takeaway: using an official API mode (user-provided key) reduces brittleness versus relying on ChatGPT web session endpoints; keeping the extension low-permission and privacy-forward helps differentiate amid growing “malicious extension” reporting.
+- Market scan (Feb 2026, bounded): “AI assistant” extensions are increasingly positioning around (1) side-panel + multi-model, (2) in-context “read this page / summarize / translate,” and (3) citations/source extraction workflows for trust.
+  Sources (untrusted): https://chromewebstore.google.com/detail/sider-chatgpt-sidebar-gpt/difoiogjjojoaoomphldepapgpbgkhkb, https://sider.ai/en/extensions/side-panel, https://chromewebstore.google.com/detail/chatgpt-sources-citations/acobdliolhcfmmiconpdpipcpjdnphci
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

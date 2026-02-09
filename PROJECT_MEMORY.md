@@ -4,6 +4,22 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 
 ## 2026-02-09
 
+### Decision: Throttle streaming markdown renders and provide “Copy Markdown”
+- Why: re-rendering markdown on every streamed delta causes layout thrash/jank; also users often want either clean plaintext paste or raw markdown source.
+- Evidence: `npm run lint`, `npm test`, `npm run build` pass locally.
+- Implementation: throttled render loop in `src/content-script/index.mjs`; added a dedicated “Copy Markdown” footer action in `src/constants/template-strings.mjs` + styling in `src/css/result-card.css`.
+- Commit: `a5ce952`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Validate OpenAI popup settings with clear inline feedback
+- Why: invalid model strings / malformed keys create confusing background failures; catching obvious input errors early improves reliability and reduces support burden.
+- Evidence: `npm run lint`, `npm test`, `npm run build` pass locally.
+- Implementation: model + key validation + status styling in `src/popup/index.mjs`, `src/css/popup.css`.
+- Commit: `4bd2acf`
+- Confidence: High
+- Trust label: Local
+
 ### Decision: Use browser-native clipboard APIs (no Node clipboard dependency)
 - Why: `clipboardy` is Node-only and can break in extension/content-script contexts; a small helper keeps copy flows reliable and reduces bundle size.
 - Evidence: `npm run lint`, `npm test`, `npm run build` all pass locally.
@@ -98,17 +114,21 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Commit: `725900f`
 - Trust label: Local
 
+### Mistakes And Fixes: `git push`/`git ls-remote` hung due to HTTP/2 transport
+- Root cause: `git-remote-https` stalled when negotiating HTTP/2 to GitHub on this machine.
+- Fix: force Git to use HTTP/1.1 (`git config --global http.version HTTP/1.1`) and retry.
+- Prevention: keep `http.version` pinned to `HTTP/1.1` for this environment; if reverting, verify `git ls-remote origin` completes quickly first.
+- Commit: N/A (environment config)
+- Trust label: Local
+
 ### Verification Evidence
 - `npm ci` (pass, 0 vulnerabilities)
 - `npm run lint` (pass)
 - `npm test` (pass)
 - `npm run build` (pass)
 - `npm run check:build` (pass)
-- `rg -n "api\\.openai\\.com/v1/responses" build/chromium/background.js` (pass, confirms OpenAI Responses API call is bundled)
-- `rg -n "gptx-footer-report-btn" build/chromium/content-script.js` (pass, confirms report button is bundled)
-- `gh run watch 21812338096 --exit-status` (pass, GitHub Actions CI on `main`)
-- `gh run watch 21817749832 --exit-status` (pass, GitHub Actions CI on `main`)
-- `gh run watch 21817818620 --exit-status` (pass, GitHub Actions CI on `main`)
+- `npm run test:e2e` (pass)
 
 ## Follow-ups
-- Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
+- Add “Stop generating” (cancel stream) to the result card.
+- Improve OpenAI API error UX for common cases (invalid model, insufficient quota) with safe messaging.
