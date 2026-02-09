@@ -7,7 +7,6 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P0 (Selected): Add an end-to-end extension smoke test (Playwright + Chromium extension loading) that verifies popup/history/security pages render and basic controls exist; run in CI under `xvfb`.
 - [ ] P2: Throttle streaming UI updates (markdown render) to reduce jank and reflow while still feeling realtime.
 - [ ] P2: Add a “Copy as Markdown” action alongside “Copy” to preserve formatting.
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
@@ -16,6 +15,8 @@
 - [ ] P3: Validate OpenAI settings input (model string + API key format sanity checks) and show clearer error states.
 
 ## Implemented
+- [x] 2026-02-09: Add an end-to-end extension smoke test (Playwright) that loads the MV3 extension and verifies popup/history/security pages render; runs in CI under `xvfb`.
+  Evidence: `test/extension-smoke.test.mjs`, `.github/workflows/ci.yml`, `package.json`, `npm run test:e2e`
 - [x] 2026-02-09: Reduce packaged extension size by stripping Bootstrap CSS sourcemap references and no longer shipping `bootstrap.min.css.map`.
   Evidence: `build.mjs` and `build/chromium/bootstrap.min.css` (no `sourceMappingURL`), plus `npm run build`
 - [x] 2026-02-09: Remove noisy popup `console.log` calls on enable/disable toggle.

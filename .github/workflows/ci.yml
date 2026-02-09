@@ -20,7 +20,7 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
 
       - name: Lint
         run: npm run lint
@@ -33,3 +33,12 @@ jobs:
 
       - name: Check build artifacts
         run: npm run check:build
+
+      - name: Install xvfb (for headed Playwright)
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E smoke (extension pages)
+        run: xvfb-run -a npm run test:e2e

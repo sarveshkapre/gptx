@@ -9,6 +9,7 @@
     "build": "node build.mjs",
     "check:build": "node scripts/check-build-artifacts.mjs build/chromium",
     "test": "node --test",
+    "test:e2e": "GPTX_E2E=1 node --test test/extension-smoke.test.mjs",
     "lint": "eslint --ext .js,.mjs src test build.mjs",
     "lint:fix": "eslint --ext .js,.mjs src test build.mjs --fix"
   },
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "eslint": "^8.29.0",
+    "playwright": "^1.58.2",
     "prettier": "^2.8.0",
     "webextension-polyfill": "^0.10.0"
   }
