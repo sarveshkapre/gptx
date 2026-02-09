@@ -7,12 +7,16 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
+- [ ] P1 (Selected): Normalize/validate Security Center allowlist + blocklist inputs (accept domains or URLs, canonicalize, dedupe, reject invalid).
+- [ ] P1 (Selected): Make allowlist/blocklist matching work for both exact hostnames and root domains; when “Allow”ing from the warning modal, store the root domain.
+- [ ] P1 (Selected): Add “Export history” (JSON) to the History UI and “Download” exports for Security Center reports/events.
 - [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
-- [ ] P1: Migrate ChatGPT integration away from legacy webapp backend endpoints to an officially supported OpenAI API flow with user-provided API key.
-- [ ] P1: Add baseline maintainer docs: `AGENTS.md`, `PROJECT_MEMORY.md`, `INCIDENTS.md` (minimal structure, then keep updated per cycle).
-- [ ] P2: Normalize/validate allowlist + blocklist entries (domain canonicalization) and prevent obviously invalid entries from being saved.
-- [ ] P2: Remove or quarantine legacy root-level `content-script.js` to reduce confusion (build outputs already live in `build/`).
-- [ ] P3: Add a lightweight “export GPTx history” action in history UI (JSON/NDJSON) for power users and debugging.
+- [ ] P1: Migrate ChatGPT integration away from legacy webapp session endpoints to an officially supported OpenAI API flow with user-provided API key.
+- [ ] P2 (Selected): Remove/quarantine legacy root-level `content-script.js` to reduce confusion (extension loads from `build/chromium/`).
+- [ ] P2: Add a lightweight build artifact checker (manifest references exist in `build/chromium/`) for faster regressions than a full browser run.
+- [ ] P2: Add a one-click “Report incorrect/unsafe answer” feedback action that stores a local report bundle (query + mode/format + answer + timestamp).
+- [ ] P3: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
+- [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 
 ## Implemented
 - [x] 2026-02-09: Added baseline maintainer documentation and memory/incident tracking.
@@ -45,7 +49,8 @@
 - ChatGPT session auth is sensitive to cookie context; `credentials: 'include'` is required for extension fetches that depend on logged-in ChatGPT web sessions.
 - History/settings were stored in one local-storage namespace; explicit key filtering is required for safe "clear history" UX.
 - Utility extraction (`history-utils`, `security-utils`, `safe-html`) reduces duplicate logic and makes critical behavior testable.
-- Market scan (Feb 2026): top competing “AI for Google” extensions commonly offer multi-site coverage, user-provided API keys, and strong UX around summaries/citations; GPTx’s Security Center is a potential differentiator if it stays robust and low-friction.
+- Market scan (Feb 2026): competing “AI for Google” extensions commonly emphasize multi-site coverage, summarize/page-reading, and model choice; GPTx’s Security Center is a potential differentiator if it stays robust and low-friction.
+  Sources (untrusted): https://chromewebstore.google.com/detail/sider-chatgpt-sidebar-%2B-g/difoiogjjojoaoomphldepapgpbgkhkb, https://chromewebstore.google.com/detail/perplexity-ai-search/bnaffjbjpgiagpondjlnneblepbdchol, https://harpa.ai/, https://chromewebstore.google.com/detail/chatgpt-for-google/pjhdflpjemjalkidecigcjcamkbllhoj, https://www.getmerlin.in/en, https://www.techradar.com/pro/security/this-new-malware-campaign-is-stealing-chat-logs-via-chrome-extensions
 
 ## Notes
 - This file is maintained by the autonomous clone loop.
