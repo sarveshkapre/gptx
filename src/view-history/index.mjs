@@ -45,6 +45,18 @@ async function main() {
       document.getElementById('gptx-nt-qa-accordian').innerHTML = getNoHistoryTemplate()
     }
   })
+
+  const gptxExportHistory = document.getElementById('gptx-export-history')
+  gptxExportHistory.addEventListener('click', async () => {
+    const allData = await Browser.storage.local.get(null)
+    const entries = getRenderableEntries(allData)
+    if (entries.length === 0) {
+      showSnackBar('No history to export')
+      return
+    }
+    downloadJson(`gptx-history-${getTodayStamp()}.json`, entries)
+    showSnackBar(`Exported ${entries.length} item${entries.length === 1 ? '' : 's'}`)
+  })
 }
 
 function renderDOM(cachedData) {
@@ -125,4 +137,25 @@ function showSnackBar(msg) {
   setTimeout(function () {
     gptxSnackBar.className = gptxSnackBar.className.replace('show', '')
   }, 3000)
+}
+
+function getTodayStamp() {
+  const d = new Date()
+  const yyyy = String(d.getFullYear())
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
