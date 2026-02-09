@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "archiver": "^5.3.1",
-    "esbuild": "^0.15.17",
+    "esbuild": "^0.27.3",
     "eventsource-parser": "^0.0.5",
     "expiry-map": "^2.0.0",
     "markdown-it": "^13.0.1",
