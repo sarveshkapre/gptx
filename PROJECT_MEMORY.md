@@ -104,6 +104,8 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm test` (pass)
 - `npm run build` (pass)
 - `npm run check:build` (pass)
+- `rg -n "api\\.openai\\.com/v1/responses" build/chromium/background.js` (pass, confirms OpenAI Responses API call is bundled)
+- `rg -n "gptx-footer-report-btn" build/chromium/content-script.js` (pass, confirms report button is bundled)
 - `gh run watch 21812338096 --exit-status` (pass, GitHub Actions CI on `main`)
 - `gh run watch 21817749832 --exit-status` (pass, GitHub Actions CI on `main`)
 - `gh run watch 21817818620 --exit-status` (pass, GitHub Actions CI on `main`)
