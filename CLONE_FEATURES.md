@@ -15,6 +15,10 @@
 - [ ] P3: Add a lightweight “export GPTx history” action in history UI (JSON/NDJSON) for power users and debugging.
 
 ## Implemented
+- [x] 2026-02-09: Added baseline maintainer documentation and memory/incident tracking.
+  Evidence: `AGENTS.md`, `PROJECT_MEMORY.md`, `INCIDENTS.md`, `README.md`
+- [x] 2026-02-09: Fixed `npm audit` findings and upgraded build toolchain dependency (`esbuild`) to a non-vulnerable version.
+  Evidence: `package.json`, `package-lock.json`
 - [x] 2026-02-09: Added history retention controls (TTL days + max items) in popup and pruning on history writes.
   Evidence: `src/utils/history-utils.mjs`, `src/popup/index.html`, `src/popup/index.mjs`, `src/content-script/index.mjs`, `test/utils.test.mjs`, `src/css/popup.css`
 - [x] 2026-02-09: Replaced Node-only clipboard handling with a browser-safe copy helper (Clipboard API + execCommand fallback).
