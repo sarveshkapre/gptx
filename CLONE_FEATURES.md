@@ -7,18 +7,22 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P1 (Selected): Normalize/validate Security Center allowlist + blocklist inputs (accept domains or URLs, canonicalize, dedupe, reject invalid).
-- [ ] P1 (Selected): Make allowlist/blocklist matching work for both exact hostnames and root domains; when “Allow”ing from the warning modal, store the root domain.
-- [ ] P1 (Selected): Add “Export history” (JSON) to the History UI and “Download” exports for Security Center reports/events.
 - [ ] P1: Add an end-to-end extension smoke test (Playwright + Chromium extension loading) to validate popup/history/security pages against real DOM behavior.
 - [ ] P1: Migrate ChatGPT integration away from legacy webapp session endpoints to an officially supported OpenAI API flow with user-provided API key.
-- [ ] P2 (Selected): Remove/quarantine legacy root-level `content-script.js` to reduce confusion (extension loads from `build/chromium/`).
 - [ ] P2: Add a lightweight build artifact checker (manifest references exist in `build/chromium/`) for faster regressions than a full browser run.
 - [ ] P2: Add a one-click “Report incorrect/unsafe answer” feedback action that stores a local report bundle (query + mode/format + answer + timestamp).
 - [ ] P3: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 
 ## Implemented
+- [x] 2026-02-09: Normalize/validate Security Center allowlist + blocklist inputs (accept domains or URLs, canonicalize, dedupe, reject invalid).
+  Evidence: `src/utils/security-utils.mjs`, `src/security-center/index.mjs`, `test/utils.test.mjs`
+- [x] 2026-02-09: Make allowlist/blocklist matching work for both exact hostnames and root domains; when “Allow”ing from the warning modal, store the root domain.
+  Evidence: `src/utils/security-utils.mjs`, `src/content-script/index.mjs`, `test/utils.test.mjs`
+- [x] 2026-02-09: Add “Export history” (JSON) to the History UI and “Download” exports for Security Center reports/events.
+  Evidence: `src/view-history/index.html`, `src/view-history/index.mjs`, `src/security-center/index.html`, `src/security-center/index.mjs`, `src/css/security-center.css`
+- [x] 2026-02-09: Remove stale legacy root-level `content-script.js` to reduce confusion (extension loads from `build/chromium/`).
+  Evidence: removed `content-script.js`
 - [x] 2026-02-09: Added baseline maintainer documentation and memory/incident tracking.
   Evidence: `AGENTS.md`, `PROJECT_MEMORY.md`, `INCIDENTS.md`, `README.md`
 - [x] 2026-02-09: Fixed `npm audit` findings and upgraded build toolchain dependency (`esbuild`) to a non-vulnerable version.

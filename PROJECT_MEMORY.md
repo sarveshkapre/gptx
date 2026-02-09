@@ -36,5 +36,42 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Confidence: High
 - Trust label: Local
 
+### Decision: Normalize Security Center allowlist/blocklist inputs and match on root domains
+- Why: Users paste URLs and mixed-case domains; without canonicalization, lists silently fail to match. Root-domain matching makes allow/block rules work across subdomains with less surprise.
+- Evidence: `npm run lint`, `npm test`, `npm run build` pass locally.
+- Implementation: `normalizeDomainEntry/normalizeDomainList` helpers + root-domain matching in risk assessment; Security Center saves canonical lists.
+- Commit: `f836ab7`, `c6467a7`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Add JSON export actions for History and Security Center (reports/alerts)
+- Why: Makes debugging/support easier and gives power users control over their data without external services.
+- Evidence: `npm run lint`, `npm test`, `npm run build` pass locally.
+- Implementation: “Export history (JSON)” in history UI; “Download” buttons for Security Center reports/alerts.
+- Commit: `19e55b9`, `f836ab7`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Remove stale legacy root-level `content-script.js`
+- Why: It was tracked but not used by the build output (`build/chromium/`), and it conflicted with the maintained MV3 source under `src/`.
+- Evidence: `npm run lint`, `npm test`, `npm run build` pass locally after removal.
+- Implementation: deleted tracked legacy file.
+- Commit: `d22031b`
+- Confidence: High
+- Trust label: Local
+
+### Mistakes And Fixes: Domain normalization didn’t strip `WWW.` when input was mixed case
+- Root cause: `normalizeDomain` removed `www.` before lowercasing, so `WWW.Example.com` was not canonicalized.
+- Fix: lowercase first, then strip `www.`.
+- Prevention: add a unit test that covers mixed-case `WWW.` domains (kept in `test/utils.test.mjs`).
+- Commit: `c6467a7`
+- Trust label: Local
+
+### Verification Evidence
+- `npm ci` (pass, 0 vulnerabilities)
+- `npm run lint` (pass)
+- `npm test` (pass)
+- `npm run build` (pass)
+
 ## Follow-ups
 - Add a Playwright extension smoke test that loads `build/chromium` and exercises popup/history/security pages.
