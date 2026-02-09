@@ -556,6 +556,31 @@ async function run(baseQuestion) {
       setStatus('Login required')
       gptxResponseBodyElem.innerHTML =
         '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>'
+    } else if (msg.error === 'OPENAI_API_KEY_MISSING') {
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('API key required')
+      showPlaceholder('Set your OpenAI API key in the extension popup (OpenAI API section).', true)
+    } else if (msg.error === 'OPENAI_UNAUTHORIZED') {
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('Invalid API key')
+      showPlaceholder('OpenAI API key rejected. Update it in the extension popup.', true)
+    } else if (msg.error === 'OPENAI_RATE_LIMIT') {
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('Rate limited')
+      showPlaceholder('OpenAI API rate limited. Try again later or switch to a smaller model.', true)
+    } else if (typeof msg.error === 'string' && msg.error.startsWith('OPENAI_ERROR:')) {
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('OpenAI error')
+      showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
+    } else if (msg.error === 'OPENAI_ERROR') {
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('OpenAI error')
+      showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
     } else {
       setButtonsDisabled(false)
       setFollowupDisabled(false)

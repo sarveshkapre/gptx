@@ -9,6 +9,10 @@ const DEFAULT_PREFERENCES = {
   format: 'bullets',
 }
 
+const DEFAULT_OPENAI_SETTINGS = {
+  model: 'gpt-4.1',
+}
+
 async function loadHistoryRetention() {
   const stored = await Browser.storage.local.get('gptxHistoryRetention')
   const retention = {
@@ -39,6 +43,34 @@ async function savePreferences(preferences) {
   await Browser.storage.local.set({
     gptxPreferences: preferences,
   })
+}
+
+async function loadOpenAISettings() {
+  const stored = await Browser.storage.local.get(['gptxOpenAIApiKey', 'gptxOpenAIModel'])
+  const model = (stored.gptxOpenAIModel || DEFAULT_OPENAI_SETTINGS.model).trim()
+  if (!stored.gptxOpenAIModel) {
+    await Browser.storage.local.set({ gptxOpenAIModel: model })
+  }
+  return {
+    apiKey: stored.gptxOpenAIApiKey || null,
+    model,
+  }
+}
+
+async function saveOpenAIModel(model) {
+  await Browser.storage.local.set({
+    gptxOpenAIModel: model,
+  })
+}
+
+async function saveOpenAIApiKey(apiKey) {
+  await Browser.storage.local.set({
+    gptxOpenAIApiKey: apiKey,
+  })
+}
+
+async function clearOpenAIApiKey() {
+  await Browser.storage.local.remove('gptxOpenAIApiKey')
 }
 
 async function main() {
@@ -165,4 +197,49 @@ async function main() {
     retention.maxEntries = Number(maxInput.value || 0)
     await saveHistoryRetention(normalizeHistoryRetention(retention))
   })
+
+  // OpenAI API settings
+  const openai = await loadOpenAISettings()
+  const openaiModelInput = document.getElementById('gptx-openai-model')
+  const openaiKeyInput = document.getElementById('gptx-openai-api-key')
+  const openaiSaveBtn = document.getElementById('gptx-openai-save')
+  const openaiClearBtn = document.getElementById('gptx-openai-clear')
+  const openaiStatus = document.getElementById('gptx-openai-status')
+
+  if (openaiModelInput) {
+    openaiModelInput.value = openai.model
+    openaiModelInput.addEventListener('change', async () => {
+      const nextModel = String(openaiModelInput.value || '').trim() || DEFAULT_OPENAI_SETTINGS.model
+      openaiModelInput.value = nextModel
+      await saveOpenAIModel(nextModel)
+    })
+  }
+
+  function setOpenAIStatus(text) {
+    if (!openaiStatus) return
+    openaiStatus.textContent = text
+  }
+
+  setOpenAIStatus(openai.apiKey ? 'Key set' : 'Not set')
+
+  if (openaiSaveBtn && openaiKeyInput) {
+    openaiSaveBtn.addEventListener('click', async () => {
+      const apiKey = String(openaiKeyInput.value || '').trim()
+      if (!apiKey) {
+        setOpenAIStatus('Enter key')
+        return
+      }
+      await saveOpenAIApiKey(apiKey)
+      openaiKeyInput.value = ''
+      setOpenAIStatus('Saved')
+    })
+  }
+
+  if (openaiClearBtn) {
+    openaiClearBtn.addEventListener('click', async () => {
+      await clearOpenAIApiKey()
+      if (openaiKeyInput) openaiKeyInput.value = ''
+      setOpenAIStatus('Cleared')
+    })
+  }
 }

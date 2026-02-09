@@ -4,6 +4,7 @@ import { fetchSSE } from './fetch-sse.mjs'
 import ExpiryMap from 'expiry-map'
 
 const KEY_ACCESS_TOKEN = 'accessToken'
+const KEY_OPENAI_SETTINGS = 'openaiSettings'
 const SESSION_ENDPOINTS = [
   'https://chatgpt.com/api/auth/session',
   'https://chat.openai.com/api/auth/session',
@@ -13,6 +14,17 @@ const CONVERSATION_ENDPOINTS = [
   'https://chat.openai.com/backend-api/conversation',
 ]
 const cache = new ExpiryMap(10 * 1000)
+
+async function getOpenAISettings() {
+  if (cache.get(KEY_OPENAI_SETTINGS)) return cache.get(KEY_OPENAI_SETTINGS)
+  const stored = await Browser.storage.local.get(['gptxOpenAIApiKey', 'gptxOpenAIModel'])
+  const settings = {
+    apiKey: stored.gptxOpenAIApiKey ? String(stored.gptxOpenAIApiKey).trim() : null,
+    model: stored.gptxOpenAIModel ? String(stored.gptxOpenAIModel).trim() : 'gpt-4.1',
+  }
+  cache.set(KEY_OPENAI_SETTINGS, settings)
+  return settings
+}
 
 async function getAccessToken() {
   if (cache.get(KEY_ACCESS_TOKEN)) {
@@ -28,6 +40,82 @@ async function getAccessToken() {
     }
   }
   throw new Error('UNAUTHORIZED')
+}
+
+function parseHttpStatusFromErrorMessage(message) {
+  if (typeof message !== 'string') return null
+  if (!message.startsWith('HTTP_')) return null
+  const code = Number(message.slice('HTTP_'.length))
+  return Number.isFinite(code) ? code : null
+}
+
+async function getOpenAIResult(port, prompt) {
+  const { apiKey, model } = await getOpenAISettings()
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY_MISSING')
+  }
+
+  const controller = new AbortController()
+  port.onDisconnect.addListener(() => {
+    controller.abort()
+  })
+
+  let outputText = ''
+
+  try {
+    await fetchSSE('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4.1',
+        input: prompt,
+        stream: true,
+        // Prefer privacy-by-default for an extension: don't store responses server-side.
+        store: false,
+      }),
+      onMessage(message) {
+        let data
+        try {
+          data = JSON.parse(message)
+        } catch {
+          return
+        }
+
+        if (data.type === 'response.output_text.delta' && typeof data.delta === 'string') {
+          outputText += data.delta
+          port.postMessage({ answer: outputText })
+          return
+        }
+
+        if (data.type === 'response.output_text.done' && typeof data.text === 'string') {
+          outputText = data.text
+          port.postMessage({ answer: outputText })
+          return
+        }
+
+        if (data.type === 'response.completed') {
+          port.postMessage({ answer: 'CHAT_GPTX_ANSWER_END' })
+        }
+
+        if (data.type === 'response.failed' || data.type === 'error') {
+          const messageText =
+            data?.error?.message || data?.response?.error?.message || 'OpenAI API error'
+          port.postMessage({ error: `OPENAI_ERROR:${messageText}` })
+        }
+      },
+    })
+  } catch (error) {
+    if (isAbortError(error)) throw error
+    const status = parseHttpStatusFromErrorMessage(error?.message)
+    if (status === 401 || status === 403) throw new Error('OPENAI_UNAUTHORIZED')
+    if (status === 429) throw new Error('OPENAI_RATE_LIMIT')
+    throw new Error('OPENAI_ERROR')
+  }
 }
 
 async function getChatGPTResult(port, question) {
@@ -99,6 +187,14 @@ function isAbortError(error) {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
+async function getBestAvailableResult(port, prompt) {
+  const { apiKey } = await getOpenAISettings()
+  if (apiKey) {
+    return getOpenAIResult(port, prompt)
+  }
+  return getChatGPTResult(port, prompt)
+}
+
 let questionToNewTab
 Browser.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (msg) => {
@@ -109,7 +205,7 @@ Browser.runtime.onConnect.addListener((port) => {
       questionToNewTab = msg.GPTX_CREATE_NEW_TAB
     } else {
       try {
-        await getChatGPTResult(port, msg.question)
+        await getBestAvailableResult(port, msg.question)
       } catch (err) {
         if (!isAbortError(err)) {
           console.error(err)

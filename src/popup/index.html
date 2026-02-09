@@ -50,6 +50,30 @@
             <div class="gptx-shortcuts">Shortcuts: <span>/</span> focus follow-up • <span>Enter</span> ask</div>
           </div>
           <div class="gptx-quick-settings gptx-preferences">
+            <div class="gptx-qs-header">OpenAI API</div>
+            <div class="gptx-divider"></div>
+            <div class="gptx-setting-row">
+              <label class="gptx-setting-label" for="gptx-openai-model">Model</label>
+              <input id="gptx-openai-model" class="gptx-select" type="text" placeholder="gpt-4.1" />
+            </div>
+            <div class="gptx-setting-row gptx-setting-row-stack">
+              <label class="gptx-setting-label" for="gptx-openai-api-key">API key</label>
+              <input
+                id="gptx-openai-api-key"
+                class="gptx-select"
+                type="password"
+                placeholder="sk-..."
+                autocomplete="off"
+              />
+              <div class="gptx-api-actions">
+                <button class="gptx-api-btn" id="gptx-openai-save">Save</button>
+                <button class="gptx-api-btn" id="gptx-openai-clear">Clear</button>
+                <span class="gptx-api-status" id="gptx-openai-status"></span>
+              </div>
+            </div>
+            <div class="gptx-shortcuts">Stored locally in extension storage</div>
+          </div>
+          <div class="gptx-quick-settings gptx-preferences">
             <div class="gptx-qs-header">Security</div>
             <div class="gptx-divider"></div>
             <div class="gptx-switch">

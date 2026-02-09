@@ -31,6 +31,7 @@ To leverage the power of the ChatGPT language model to provide users with a more
 
 - Official ☑️: Officially reviewed & published on Chrome
 - Secure 🔐: Does not store user data & directly communicates with ChatGPT API.
+- Optional OpenAI API 🔑: You can provide your own OpenAI API key (stored locally in extension storage) to use the official API; otherwise GPTx can fall back to ChatGPT web-session mode.
 - Easy to Install 🛠️: One-click installation from Chrome web store
 - Faster ⏩: Streams data, providing faster response
 - Boosts Productivity
