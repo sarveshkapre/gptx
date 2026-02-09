@@ -49,7 +49,7 @@
   Evidence: `README.md`
 
 ## Insights
-- Legacy root-level `content-script.js` is stale and fails lint; lint scope should stay focused on maintained source (`src/`) to avoid false failures.
+- Legacy root-level `content-script.js` was stale and has been removed; build outputs should remain under `build/chromium/`.
 - ChatGPT session auth is sensitive to cookie context; `credentials: 'include'` is required for extension fetches that depend on logged-in ChatGPT web sessions.
 - History/settings were stored in one local-storage namespace; explicit key filtering is required for safe "clear history" UX.
 - Utility extraction (`history-utils`, `security-utils`, `safe-html`) reduces duplicate logic and makes critical behavior testable.
