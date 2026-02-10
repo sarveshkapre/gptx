@@ -783,7 +783,6 @@ async function run(baseQuestion) {
         } catch {
           // ignore
         }
-        port = null
       }
     })
   }
