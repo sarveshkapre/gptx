@@ -409,6 +409,31 @@ async function run(baseQuestion) {
     }">${message}</div>`
   }
 
+  function endGenerationUI({ status, placeholder = null, isError = false, html = null }) {
+    isGenerating = false
+    setStopVisible(false)
+    setButtonsDisabled(false)
+    setFollowupDisabled(false)
+    setStatus(status)
+
+    if (html) {
+      gptxResponseBodyElem.innerHTML = html
+      return
+    }
+    if (placeholder) {
+      showPlaceholder(placeholder, isError)
+    }
+  }
+
+  function isInteractiveField(element) {
+    if (!element) return false
+    if (element instanceof HTMLInputElement) return true
+    if (element instanceof HTMLTextAreaElement) return true
+    if (element instanceof HTMLSelectElement) return true
+    if (element instanceof HTMLElement && element.isContentEditable) return true
+    return false
+  }
+
   function setSecurityBanner(message, variant = 'info', withLink = false) {
     if (!gptxSecurityBannerElem) return
     if (!message) {
@@ -475,92 +500,72 @@ async function run(baseQuestion) {
           renderAnswer(msg.answer, activeRequest?.startTime || performance.now(), false)
         }
       } else if (msg.error === 'UNAUTHORIZED') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Login required')
-        gptxResponseBodyElem.innerHTML =
-          '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>'
+        endGenerationUI({
+          status: 'Login required',
+          html: '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>',
+        })
       } else if (msg.error === 'OPENAI_API_KEY_MISSING') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('API key required')
-        showPlaceholder('Set your OpenAI API key in the extension popup (OpenAI API section).', true)
+        endGenerationUI({
+          status: 'API key required',
+          placeholder: 'Set your OpenAI API key in the extension popup (OpenAI API section).',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_UNAUTHORIZED') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Invalid API key')
-        showPlaceholder('OpenAI API key rejected. Update it in the extension popup.', true)
+        endGenerationUI({
+          status: 'Invalid API key',
+          placeholder: 'OpenAI API key rejected. Update it in the extension popup.',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_RATE_LIMIT') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Rate limited')
-        showPlaceholder('OpenAI API rate limited. Try again later or switch to a smaller model.', true)
+        endGenerationUI({
+          status: 'Rate limited',
+          placeholder: 'OpenAI API rate limited. Try again later or switch to a smaller model.',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_INVALID_MODEL') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Invalid model')
-        showPlaceholder(
-          'OpenAI model not found. Update the model name in the extension popup (OpenAI API section).',
-          true,
-        )
+        endGenerationUI({
+          status: 'Invalid model',
+          placeholder:
+            'OpenAI model not found. Update the model name in the extension popup (OpenAI API section).',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_INSUFFICIENT_QUOTA') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Quota / billing')
-        showPlaceholder(
-          'OpenAI API quota/billing issue. Check your OpenAI account or remove the API key to use ChatGPT-session mode.',
-          true,
-        )
+        endGenerationUI({
+          status: 'Quota / billing',
+          placeholder:
+            'OpenAI API quota/billing issue. Check your OpenAI account or remove the API key to use ChatGPT-session mode.',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_SERVER_ERROR') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('OpenAI server error')
-        showPlaceholder('OpenAI API server error. Try again later.', true)
+        endGenerationUI({
+          status: 'OpenAI server error',
+          placeholder: 'OpenAI API server error. Try again later.',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_BAD_REQUEST') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('OpenAI request rejected')
-        showPlaceholder('OpenAI API rejected the request. Check your model and try again.', true)
+        endGenerationUI({
+          status: 'OpenAI request rejected',
+          placeholder: 'OpenAI API rejected the request. Check your model and try again.',
+          isError: true,
+        })
       } else if (typeof msg.error === 'string' && msg.error.startsWith('OPENAI_ERROR:')) {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('OpenAI error')
-        showPlaceholder(
-          'OpenAI API request failed. Check your key/model in the popup and try again.',
-          true,
-        )
+        endGenerationUI({
+          status: 'OpenAI error',
+          placeholder: 'OpenAI API request failed. Check your key/model in the popup and try again.',
+          isError: true,
+        })
       } else if (msg.error === 'OPENAI_ERROR') {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('OpenAI error')
-        showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
+        endGenerationUI({
+          status: 'OpenAI error',
+          placeholder: 'OpenAI API request failed. Check your key/model in the popup and try again.',
+          isError: true,
+        })
       } else {
-        isGenerating = false
-        setStopVisible(false)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('Unable to load')
-        showPlaceholder('Failed to load response from ChatGPT.', true)
+        endGenerationUI({
+          status: 'Unable to load',
+          placeholder: 'Failed to load response from ChatGPT.',
+          isError: true,
+        })
       }
     })
 
@@ -574,12 +579,11 @@ async function run(baseQuestion) {
       }
 
       if (!isGenerating) return
-      isGenerating = false
-      setStopVisible(false)
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Disconnected')
-      showPlaceholder('Connection lost while generating. Please try again.', true)
+      endGenerationUI({
+        status: 'Disconnected',
+        placeholder: 'Connection lost while generating. Please try again.',
+        isError: true,
+      })
     })
   }
 
@@ -756,34 +760,39 @@ async function run(baseQuestion) {
     })
   })
 
+  function stopGenerating() {
+    if (!isGenerating) return false
+    isGenerating = false
+    setStopVisible(false)
+
+    if (renderTimer) {
+      clearTimeout(renderTimer)
+      renderTimer = null
+    }
+
+    if (previousResponse) {
+      renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
+    } else {
+      showPlaceholder('Stopped.', false)
+    }
+    setButtonsDisabled(false)
+    setFollowupDisabled(false)
+    setStatus('Stopped')
+
+    if (port) {
+      try {
+        portDisconnectWasUserCancel = true
+        port.disconnect()
+      } catch {
+        // ignore
+      }
+    }
+    return true
+  }
+
   if (gptxFooterStopBtn) {
     gptxFooterStopBtn.addEventListener('click', () => {
-      if (!isGenerating) return
-      isGenerating = false
-      setStopVisible(false)
-
-      if (renderTimer) {
-        clearTimeout(renderTimer)
-        renderTimer = null
-      }
-
-      if (previousResponse) {
-        renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
-      } else {
-        showPlaceholder('Stopped.', false)
-      }
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Stopped')
-
-      if (port) {
-        try {
-          portDisconnectWasUserCancel = true
-          port.disconnect()
-        } catch {
-          // ignore
-        }
-      }
+      stopGenerating()
     })
   }
 
@@ -858,14 +867,20 @@ async function run(baseQuestion) {
 
   document.addEventListener('keydown', (event) => {
     const target = event.target
-    const isTypingField =
-      target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
+    const isTypingField = isInteractiveField(target)
     if (event.key === '/' && !isTypingField) {
       event.preventDefault()
       gptxFollowupInput.focus()
     }
-    if (event.key === 'Escape' && document.activeElement === gptxFollowupInput) {
-      gptxFollowupInput.blur()
+    if (event.key === 'Escape') {
+      if (document.activeElement === gptxFollowupInput) {
+        gptxFollowupInput.blur()
+        return
+      }
+      // Don't hijack Escape while the user is typing elsewhere; but allow it to stop a stream.
+      if (!isTypingField && stopGenerating()) {
+        event.preventDefault()
+      }
     }
   })
 
