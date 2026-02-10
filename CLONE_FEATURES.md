@@ -7,10 +7,6 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P1 (Selected): Add “Stop generating” (cancel stream) in the result card footer; keep partial output visible and allow regenerate without reloading the page.
-- [ ] P1 (Selected): Don’t clear cached ChatGPT access token on user-initiated cancel/abort (avoid forcing re-login after hitting Stop).
-- [ ] P2 (Selected): Improve OpenAI API error UX (detect invalid model vs quota/billing vs rate-limit with safe, non-leaky messaging) and add unit tests for the classifier.
-- [ ] P3 (Selected): Reduce background SSE overhead (reuse `TextDecoder`; preserve existing behavior) and make HTTP error parsing resilient (`HTTP_400:...`).
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
@@ -18,6 +14,10 @@
 - [ ] P3: Add an Escape-key shortcut to stop generation when the GPTx follow-up input is not focused.
 
 ## Implemented
+- [x] 2026-02-10: Add “Stop generating” to cancel streaming answers without forcing page reload; avoid clearing the cached ChatGPT access token on user-initiated abort.
+  Evidence: `src/constants/template-strings.mjs`, `src/css/result-card.css`, `src/content-script/index.mjs`, `src/background/index.mjs`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`
+- [x] 2026-02-10: Improve OpenAI API error UX (invalid model/quota/rate-limit/server) with a small classifier + tests; optimize background SSE decoding and include HTTP error snippets for safer classification.
+  Evidence: `src/utils/openai-error-utils.mjs`, `src/background/index.mjs`, `src/background/fetch-sse.mjs`, `src/content-script/index.mjs`, `test/utils.test.mjs`, `npm run lint`, `npm test`, `npm run test:e2e`, `npm run build`, `npm run check:build`
 - [x] 2026-02-09: Throttle streaming markdown renders to reduce UI jank; update “Copy” to copy rendered plaintext and add “Copy Markdown” to copy the raw markdown answer.
   Evidence: `src/content-script/index.mjs`, `src/constants/template-strings.mjs`, `src/css/result-card.css`, `npm run lint`, `npm test`, `npm run build`
 - [x] 2026-02-09: Validate OpenAI settings input in popup (model string + API key sanity checks) and show clearer error states.

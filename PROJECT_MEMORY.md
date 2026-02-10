@@ -130,5 +130,31 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm run test:e2e` (pass)
 
 ## Follow-ups
-- Add “Stop generating” (cancel stream) to the result card.
-- Improve OpenAI API error UX for common cases (invalid model, insufficient quota) with safe messaging.
+- Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
+- Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
+- Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
+
+## 2026-02-10
+
+### Decision: Add “Stop generating” and treat abort as non-fatal (don’t clear ChatGPT token cache)
+- Why: Streaming can get stuck or become “good enough” before completion; users need a fast cancel path. Clearing the cached ChatGPT access token on abort forces unnecessary re-logins.
+- Evidence: `npm run lint`, `npm test`, `npm run test:e2e`, `npm run build`, `npm run check:build` pass locally; GitHub Actions run `21861123594` is green.
+- Implementation: stop button wired to disconnect the active stream port (background aborts via `AbortController`); background no longer deletes cached ChatGPT token on abort; new-tab action moved to `runtime.sendMessage`.
+- Commit: `1a381bc`
+- Confidence: High
+- Trust label: Local
+
+### Decision: Classify OpenAI API errors and optimize SSE decoding
+- Why: Generic “OpenAI error” messaging increases support load and user confusion; classifying invalid model vs quota/billing vs rate limit vs server error enables actionable, safe UX. Reusing a single `TextDecoder` reduces overhead while streaming.
+- Evidence: unit tests added; `npm run lint`, `npm test`, `npm run test:e2e`, `npm run build`, `npm run check:build` pass locally; GitHub Actions run `21861189540` is green.
+- Implementation: add `src/utils/openai-error-utils.mjs` + tests; include a bounded body snippet in `HTTP_XXX:` errors to improve classification; update UI error messages.
+- Commit: `2009868`
+- Confidence: High
+- Trust label: Local
+
+### Verification Evidence
+- `npm run lint` (pass)
+- `npm test` (pass)
+- `npm run test:e2e` (pass)
+- `npm run build` (pass)
+- `npm run check:build` (pass)
