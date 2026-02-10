@@ -67,7 +67,6 @@ async function build() {
     { src: 'src/view-history/index.html', dst: 'view-history.html' },
     { src: 'src/security-center/index.html', dst: 'security-center.html' },
     { src: 'src/css/github-markdown.css', dst: 'github-markdown.css' },
-    { src: 'src/css/bootstrap.min.css', dst: 'bootstrap.min.css' },
     { src: 'src/css/result-card.css', dst: 'result-card.css' },
     { src: 'src/css/popup.css', dst: 'popup.css' },
     { src: 'src/css/new-tab.css', dst: 'new-tab.css' },
