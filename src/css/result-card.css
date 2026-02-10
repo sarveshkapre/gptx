@@ -354,6 +354,9 @@
   align-items: center;
   justify-content: center;
 }
+.gptx-footer-btns.is-hidden {
+  display: none;
+}
 .gptx-footer-btns.is-markdown::after {
   content: "MD";
   position: absolute;

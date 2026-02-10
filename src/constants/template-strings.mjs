@@ -23,6 +23,14 @@ export function getMarkdownIconSvg(width = '1em', height = '1em', color = 'red')
   </svg>
   `
 }
+
+export function getStopIconSvg(width = '1em', height = '1em', color = 'red') {
+  return `
+  <svg id="stop-icon-svg" width=${width} height=${height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="${color}"/>
+  </svg>
+  `
+}
 export function getNewTabIconSvg(width = '1em', height = '1em', color = 'red') {
   return `
   <svg id="new-tab-svg" width=${width} height=${height} fill="${color}" viewBox="0 0 44 44"  xmlns="http://www.w3.org/2000/svg">
@@ -113,6 +121,10 @@ export function getResultCardTemplate(iconColor) {
     <div class="btn gptx-footer-btns is-markdown" id="gptx-footer-copy-md-btn">
       ${getMarkdownIconSvg('1.2em', '1.2em', iconColor)}
       <span class="gptx-tooltip-text" id="gptx-tooltip-copy-md-text">Copy Markdown</span>
+    </div>
+    <div class="btn gptx-footer-btns is-hidden" id="gptx-footer-stop-btn">
+      ${getStopIconSvg('1.2em', '1.2em', iconColor)}
+      <span class="gptx-tooltip-text">Stop</span>
     </div>
     <div class="btn gptx-footer-btns" id="gptx-footer-refresh-btn">
       ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}

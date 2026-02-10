@@ -336,14 +336,13 @@ async function run(baseQuestion) {
 
   parentNode.insertBefore(newNode, referenceNode)
 
-  const port = Browser.runtime.connect()
-
   const gptxLoadingParaElem = document.getElementById('gptx-loading-para')
   const gptxTimeParaElem = document.getElementById('gptx-time-para')
   const gptxResponseBodyElem = document.getElementById('gptx-response-body')
   const gptxQuestionElem = document.getElementById('gptx-question')
   const gptxSecurityBannerElem = document.getElementById('gptx-security-banner')
   const gptxFooterRefreshBtn = document.getElementById('gptx-footer-refresh-btn')
+  const gptxFooterStopBtn = document.getElementById('gptx-footer-stop-btn')
   const gptxFooterCopyBtn = document.getElementById('gptx-footer-copy-btn')
   const gptxFooterCopyMdBtn = document.getElementById('gptx-footer-copy-md-btn')
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
@@ -358,6 +357,10 @@ async function run(baseQuestion) {
   let activeRequest = null
   let previousResponse = ''
   const riskMap = new WeakMap()
+  let isGenerating = false
+
+  let port = null
+  let portDisconnectWasUserCancel = false
 
   const markdown = new MarkdownIt()
   const STREAM_RENDER_INTERVAL_MS = 90
@@ -388,6 +391,11 @@ async function run(baseQuestion) {
       gptxFooterNewTabBtn.classList.remove('gptx-disable-btn')
       if (gptxFooterReportBtn) gptxFooterReportBtn.classList.remove('gptx-disable-btn')
     }
+  }
+
+  function setStopVisible(visible) {
+    if (!gptxFooterStopBtn) return
+    gptxFooterStopBtn.classList.toggle('is-hidden', !visible)
   }
 
   function setFollowupDisabled(disabled) {
@@ -431,7 +439,133 @@ async function run(baseQuestion) {
     })
   }
 
+  function resetPort() {
+    if (!port) return
+    try {
+      portDisconnectWasUserCancel = false
+      port.disconnect()
+    } catch {
+      // Ignore: can throw if already disconnected.
+    }
+    port = null
+  }
+
+  function attachPortListeners(attachedPort) {
+    attachedPort.onMessage.addListener(async (msg) => {
+      if (msg.answer) {
+        if (msg.answer === 'CHAT_GPTX_ANSWER_END') {
+          isGenerating = false
+          setStopVisible(false)
+          renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
+          setButtonsDisabled(false)
+          setFollowupDisabled(false)
+          setStatus('GPTx answer')
+          if (activeRequest?.cacheKey) {
+            await storeHistoryEntry(activeRequest.cacheKey, {
+              question: activeRequest.displayQuestion,
+              answer: previousResponse,
+              mode: activeRequest.preferences.mode,
+              format: activeRequest.preferences.format,
+              createdAt: Date.now(),
+            })
+          }
+        } else {
+          previousResponse = msg.answer
+          // Rendering markdown is expensive; throttle updates to reduce jank while streaming.
+          renderAnswer(msg.answer, activeRequest?.startTime || performance.now(), false)
+        }
+      } else if (msg.error === 'UNAUTHORIZED') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Login required')
+        gptxResponseBodyElem.innerHTML =
+          '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>'
+      } else if (msg.error === 'OPENAI_API_KEY_MISSING') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('API key required')
+        showPlaceholder('Set your OpenAI API key in the extension popup (OpenAI API section).', true)
+      } else if (msg.error === 'OPENAI_UNAUTHORIZED') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Invalid API key')
+        showPlaceholder('OpenAI API key rejected. Update it in the extension popup.', true)
+      } else if (msg.error === 'OPENAI_RATE_LIMIT') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Rate limited')
+        showPlaceholder('OpenAI API rate limited. Try again later or switch to a smaller model.', true)
+      } else if (typeof msg.error === 'string' && msg.error.startsWith('OPENAI_ERROR:')) {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('OpenAI error')
+        showPlaceholder(
+          'OpenAI API request failed. Check your key/model in the popup and try again.',
+          true,
+        )
+      } else if (msg.error === 'OPENAI_ERROR') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('OpenAI error')
+        showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
+      } else {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Unable to load')
+        showPlaceholder('Failed to load response from ChatGPT.', true)
+      }
+    })
+
+    attachedPort.onDisconnect.addListener(() => {
+      if (attachedPort !== port) return
+      port = null
+
+      if (portDisconnectWasUserCancel) {
+        portDisconnectWasUserCancel = false
+        return
+      }
+
+      if (!isGenerating) return
+      isGenerating = false
+      setStopVisible(false)
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('Disconnected')
+      showPlaceholder('Connection lost while generating. Please try again.', true)
+    })
+  }
+
+  function ensurePort() {
+    resetPort()
+    port = Browser.runtime.connect()
+    attachPortListeners(port)
+    return port
+  }
+
   async function requestAnswer({ prompt, displayQuestion, cacheKey }) {
+    // Cancel any in-flight stream and reset render state.
+    isGenerating = true
+    setStopVisible(true)
+    if (renderTimer) {
+      clearTimeout(renderTimer)
+      renderTimer = null
+    }
+    pendingRenderText = ''
+
     activeRequest = {
       prompt,
       displayQuestion,
@@ -446,7 +580,7 @@ async function run(baseQuestion) {
     showPlaceholder('Thinking...')
     setButtonsDisabled(true)
     setFollowupDisabled(true)
-    port.postMessage({ question: prompt })
+    ensurePort().postMessage({ question: prompt })
   }
 
   async function loadFromCacheOrRequest({ prompt, displayQuestion, cacheKey }) {
@@ -579,66 +713,6 @@ async function run(baseQuestion) {
     gptxFollowupInput.value = ''
   }
 
-  port.onMessage.addListener(async (msg) => {
-    if (msg.answer) {
-      if (msg.answer === 'CHAT_GPTX_ANSWER_END') {
-        renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
-        setButtonsDisabled(false)
-        setFollowupDisabled(false)
-        setStatus('GPTx answer')
-        if (activeRequest?.cacheKey) {
-          await storeHistoryEntry(activeRequest.cacheKey, {
-            question: activeRequest.displayQuestion,
-            answer: previousResponse,
-            mode: activeRequest.preferences.mode,
-            format: activeRequest.preferences.format,
-            createdAt: Date.now(),
-          })
-        }
-      } else {
-        previousResponse = msg.answer
-        // Rendering markdown is expensive; throttle updates to reduce jank while streaming.
-        renderAnswer(msg.answer, activeRequest?.startTime || performance.now(), false)
-      }
-    } else if (msg.error === 'UNAUTHORIZED') {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Login required')
-      gptxResponseBodyElem.innerHTML =
-        '<div class="gptx-response-placeholder is-error">Please log in at <a href="https://chatgpt.com" target="_blank">chatgpt.com</a> first.</div>'
-    } else if (msg.error === 'OPENAI_API_KEY_MISSING') {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('API key required')
-      showPlaceholder('Set your OpenAI API key in the extension popup (OpenAI API section).', true)
-    } else if (msg.error === 'OPENAI_UNAUTHORIZED') {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Invalid API key')
-      showPlaceholder('OpenAI API key rejected. Update it in the extension popup.', true)
-    } else if (msg.error === 'OPENAI_RATE_LIMIT') {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Rate limited')
-      showPlaceholder('OpenAI API rate limited. Try again later or switch to a smaller model.', true)
-    } else if (typeof msg.error === 'string' && msg.error.startsWith('OPENAI_ERROR:')) {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('OpenAI error')
-      showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
-    } else if (msg.error === 'OPENAI_ERROR') {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('OpenAI error')
-      showPlaceholder('OpenAI API request failed. Check your key/model in the popup and try again.', true)
-    } else {
-      setButtonsDisabled(false)
-      setFollowupDisabled(false)
-      setStatus('Unable to load')
-      showPlaceholder('Failed to load response from ChatGPT.', true)
-    }
-  })
-
   gptxFooterRefreshBtn.addEventListener('click', async () => {
     if (!activeRequest) return
     await requestAnswer({
@@ -647,6 +721,38 @@ async function run(baseQuestion) {
       cacheKey: activeRequest.cacheKey,
     })
   })
+
+  if (gptxFooterStopBtn) {
+    gptxFooterStopBtn.addEventListener('click', () => {
+      if (!isGenerating) return
+      isGenerating = false
+      setStopVisible(false)
+
+      if (renderTimer) {
+        clearTimeout(renderTimer)
+        renderTimer = null
+      }
+
+      if (previousResponse) {
+        renderAnswer(previousResponse, activeRequest?.startTime || performance.now(), true)
+      } else {
+        showPlaceholder('Stopped.', false)
+      }
+      setButtonsDisabled(false)
+      setFollowupDisabled(false)
+      setStatus('Stopped')
+
+      if (port) {
+        try {
+          portDisconnectWasUserCancel = true
+          port.disconnect()
+        } catch {
+          // ignore
+        }
+        port = null
+      }
+    })
+  }
 
   gptxFooterCopyBtn.addEventListener('click', async () => {
     const answerToCopy = String(gptxResponseBodyElem?.innerText || '').trim() || previousResponse
@@ -682,7 +788,7 @@ async function run(baseQuestion) {
 
   gptxFooterNewTabBtn.addEventListener('click', () => {
     if (!activeRequest?.cacheKey) return
-    port.postMessage({ GPTX_CREATE_NEW_TAB: activeRequest.cacheKey })
+    Browser.runtime.sendMessage({ action: 'createNewTab', cacheKey: activeRequest.cacheKey })
   })
 
   if (gptxFooterReportBtn) {
@@ -734,6 +840,7 @@ async function run(baseQuestion) {
   attachChipListeners()
   setFollowupDisabled(true)
   setButtonsDisabled(true)
+  setStopVisible(false)
 
   if (securityEnabled) {
     if (settings.hideAds) {

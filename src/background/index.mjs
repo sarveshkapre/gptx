@@ -211,10 +211,9 @@ Browser.runtime.onConnect.addListener((port) => {
       try {
         await getBestAvailableResult(port, msg.question)
       } catch (err) {
-        if (!isAbortError(err)) {
-          console.error(err)
-          port.postMessage({ error: err.message })
-        }
+        if (isAbortError(err)) return
+        console.error(err)
+        port.postMessage({ error: err.message })
         cache.delete(KEY_ACCESS_TOKEN)
       }
     }
@@ -222,6 +221,13 @@ Browser.runtime.onConnect.addListener((port) => {
 })
 
 Browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'createNewTab' && message.cacheKey) {
+    Browser.tabs.create({
+      url: 'new-tab.html',
+    })
+    questionToNewTab = message.cacheKey
+    return
+  }
   if (message.action === 'getQuestion') {
     sendResponse({ cacheKey: questionToNewTab })
   }
