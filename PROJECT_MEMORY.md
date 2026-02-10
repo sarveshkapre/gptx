@@ -152,6 +152,13 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Confidence: High
 - Trust label: Local
 
+### Mistakes And Fixes: Stop-cancel left a stale “user cancel” flag on port mismatch
+- Root cause: the Stop handler nulled `port` before `onDisconnect` ran, so the handler returned early and didn’t clear the cancel flag.
+- Fix: let `onDisconnect` own clearing (don’t null `port` in the Stop handler).
+- Prevention: avoid mutating shared connection state in two places; if a listener gates on identity checks, ensure state is still comparable when it fires.
+- Commit: `090810b`
+- Trust label: Local
+
 ### Verification Evidence
 - `npm run lint` (pass)
 - `npm test` (pass)
