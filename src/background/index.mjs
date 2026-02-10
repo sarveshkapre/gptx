@@ -2,6 +2,10 @@ import { v4 as uuidv4 } from 'uuid'
 import Browser from 'webextension-polyfill'
 import { fetchSSE } from './fetch-sse.mjs'
 import ExpiryMap from 'expiry-map'
+import {
+  classifyOpenAIError,
+  parseHttpErrorFromMessage,
+} from '../utils/openai-error-utils.mjs'
 
 const KEY_ACCESS_TOKEN = 'accessToken'
 const KEY_OPENAI_SETTINGS = 'openaiSettings'
@@ -40,13 +44,6 @@ async function getAccessToken() {
     }
   }
   throw new Error('UNAUTHORIZED')
-}
-
-function parseHttpStatusFromErrorMessage(message) {
-  if (typeof message !== 'string') return null
-  if (!message.startsWith('HTTP_')) return null
-  const code = Number(message.slice('HTTP_'.length))
-  return Number.isFinite(code) ? code : null
 }
 
 async function getOpenAIResult(port, prompt) {
@@ -107,18 +104,17 @@ async function getOpenAIResult(port, prompt) {
 
         if (data.type === 'response.failed' || data.type === 'error') {
           completed = true
-          const messageText =
-            data?.error?.message || data?.response?.error?.message || 'OpenAI API error'
-          port.postMessage({ error: `OPENAI_ERROR:${messageText}` })
+          const messageText = data?.error?.message || data?.response?.error?.message || null
+          const code = classifyOpenAIError({ status: null, bodyText: null, messageText })
+          port.postMessage({ error: code })
         }
       },
     })
   } catch (error) {
     if (isAbortError(error)) throw error
-    const status = parseHttpStatusFromErrorMessage(error?.message)
-    if (status === 401 || status === 403) throw new Error('OPENAI_UNAUTHORIZED')
-    if (status === 429) throw new Error('OPENAI_RATE_LIMIT')
-    throw new Error('OPENAI_ERROR')
+    const { status, bodyText } = parseHttpErrorFromMessage(error?.message)
+    const code = classifyOpenAIError({ status, bodyText, messageText: error?.message })
+    throw new Error(code)
   }
 }
 
@@ -181,7 +177,7 @@ async function getChatGPTResult(port, question) {
     }
   }
 
-  if (lastError?.message === 'HTTP_401' || lastError?.message === 'HTTP_403') {
+  if (typeof lastError?.message === 'string' && (lastError.message.startsWith('HTTP_401') || lastError.message.startsWith('HTTP_403'))) {
     throw new Error('UNAUTHORIZED')
   }
   throw lastError || new Error('UNAUTHORIZED')

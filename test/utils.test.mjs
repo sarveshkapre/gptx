@@ -17,6 +17,10 @@ import {
   normalizeDomainList,
   stripTrackingParams,
 } from '../src/utils/security-utils.mjs'
+import {
+  classifyOpenAIError,
+  parseHttpErrorFromMessage,
+} from '../src/utils/openai-error-utils.mjs'
 
 test('buildCacheKey uses question, mode, and format', () => {
   const key = buildCacheKey('best running shoes', { mode: 'summary', format: 'bullets' })
@@ -161,4 +165,42 @@ test('normalizeDomainList dedupes and returns invalid entries', () => {
   const result = normalizeDomainList(['example.com', 'https://www.example.com/', 'bad input'])
   assert.deepEqual(result.domains, ['example.com'])
   assert.deepEqual(result.invalid, ['bad input'])
+})
+
+test('parseHttpErrorFromMessage parses status and optional body', () => {
+  assert.deepEqual(parseHttpErrorFromMessage('HTTP_401'), { status: 401, bodyText: null })
+  assert.deepEqual(parseHttpErrorFromMessage('HTTP_400:{"error":{"message":"nope"}}'), {
+    status: 400,
+    bodyText: '{"error":{"message":"nope"}}',
+  })
+  assert.deepEqual(parseHttpErrorFromMessage('something else'), { status: null, bodyText: null })
+})
+
+test('classifyOpenAIError detects common causes from status/body/message', () => {
+  assert.equal(
+    classifyOpenAIError({
+      status: 400,
+      bodyText: '{"error":{"message":"The model `gpt-x` does not exist","code":"model_not_found"}}',
+      messageText: null,
+    }),
+    'OPENAI_INVALID_MODEL',
+  )
+
+  assert.equal(
+    classifyOpenAIError({
+      status: 429,
+      bodyText: '{"error":{"message":"Rate limit exceeded","type":"rate_limit_exceeded"}}',
+      messageText: null,
+    }),
+    'OPENAI_RATE_LIMIT',
+  )
+
+  assert.equal(
+    classifyOpenAIError({
+      status: 400,
+      bodyText: '{"error":{"message":"You exceeded your current quota, please check your plan.","code":"insufficient_quota"}}',
+      messageText: null,
+    }),
+    'OPENAI_INSUFFICIENT_QUOTA',
+  )
 })

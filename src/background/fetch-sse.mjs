@@ -11,7 +11,16 @@ export async function fetchSSE(resource, options) {
   const { onMessage, ...fetchOptions } = options
   const resp = await fetch(resource, fetchOptions)
   if (!resp.ok) {
-    throw new Error(`HTTP_${resp.status}`)
+    // Best-effort include a snippet of the response body to enable safer classification
+    // of common errors (invalid model / quota / rate limit) without logging secrets.
+    let bodyText = ''
+    try {
+      bodyText = await resp.text()
+    } catch {
+      bodyText = ''
+    }
+    const snippet = bodyText ? bodyText.slice(0, 4000) : ''
+    throw new Error(snippet ? `HTTP_${resp.status}:${snippet}` : `HTTP_${resp.status}`)
   }
   if (!resp.body) {
     throw new Error('EMPTY_RESPONSE')
@@ -27,8 +36,13 @@ export async function fetchSSE(resource, options) {
 
   // The function uses a for-await-of loop to iterate over the chunks of the response body, which is made async iterable using the streamAsyncIterable function. For each chunk, it creates a new TextDecoder and decodes the chunk into a string. It then feeds the string to the event source parser using the parser.feed method. This causes the parser to parse the string and call the callback for any events it finds.
 
+  const decoder = new TextDecoder()
   for await (const chunk of streamAsyncIterable(resp.body)) {
-    const str = new TextDecoder().decode(chunk)
+    const str = decoder.decode(chunk, { stream: true })
     parser.feed(str)
   }
+
+  // Flush any buffered multi-byte sequences.
+  const tail = decoder.decode()
+  if (tail) parser.feed(tail)
 }

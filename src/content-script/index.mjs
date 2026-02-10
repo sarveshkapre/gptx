@@ -503,6 +503,40 @@ async function run(baseQuestion) {
         setFollowupDisabled(false)
         setStatus('Rate limited')
         showPlaceholder('OpenAI API rate limited. Try again later or switch to a smaller model.', true)
+      } else if (msg.error === 'OPENAI_INVALID_MODEL') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Invalid model')
+        showPlaceholder(
+          'OpenAI model not found. Update the model name in the extension popup (OpenAI API section).',
+          true,
+        )
+      } else if (msg.error === 'OPENAI_INSUFFICIENT_QUOTA') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('Quota / billing')
+        showPlaceholder(
+          'OpenAI API quota/billing issue. Check your OpenAI account or remove the API key to use ChatGPT-session mode.',
+          true,
+        )
+      } else if (msg.error === 'OPENAI_SERVER_ERROR') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('OpenAI server error')
+        showPlaceholder('OpenAI API server error. Try again later.', true)
+      } else if (msg.error === 'OPENAI_BAD_REQUEST') {
+        isGenerating = false
+        setStopVisible(false)
+        setButtonsDisabled(false)
+        setFollowupDisabled(false)
+        setStatus('OpenAI request rejected')
+        showPlaceholder('OpenAI API rejected the request. Check your model and try again.', true)
       } else if (typeof msg.error === 'string' && msg.error.startsWith('OPENAI_ERROR:')) {
         isGenerating = false
         setStopVisible(false)
