@@ -11,9 +11,10 @@
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
 - [ ] P3: Add a per-entry “Copy link + answer” share bundle for local support/debugging (no server upload).
-- [ ] P3: Add an Escape-key shortcut to stop generation when the GPTx follow-up input is not focused.
 
 ## Implemented
+- [x] 2026-02-10: Add an Escape-key shortcut to stop generation when the user is not typing (follow-up input not focused).
+  Evidence: `src/content-script/index.mjs`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`
 - [x] 2026-02-10: Add “Stop generating” to cancel streaming answers without forcing page reload; avoid clearing the cached ChatGPT access token on user-initiated abort.
   Evidence: `src/constants/template-strings.mjs`, `src/css/result-card.css`, `src/content-script/index.mjs`, `src/background/index.mjs`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`
 - [x] 2026-02-10: Improve OpenAI API error UX (invalid model/quota/rate-limit/server) with a small classifier + tests; optimize background SSE decoding and include HTTP error snippets for safer classification.

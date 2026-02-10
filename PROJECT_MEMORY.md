@@ -152,6 +152,22 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - Confidence: High
 - Trust label: Local
 
+### Decision: Add Escape-key shortcut to stop generation (when not typing)
+- Why: Power users expect an immediate keyboard escape hatch when streaming; Escape is a common "stop" affordance and reduces reliance on mouse-targeting the Stop button.
+- Evidence: `npm run lint`, `npm test`, `npm run build`, `npm run check:build` pass locally.
+- Implementation: add `stopGenerating()` helper + reuse it from the footer Stop button and `Escape` keydown when no typing field is focused; consolidate repeated error-state teardown with `endGenerationUI` in `src/content-script/index.mjs`.
+- Commit: `dd7f4c5`
+- Confidence: High
+- Trust label: Local
+
+### Chore: Remove Bootstrap CSS sourcemap from src and simplify build copy
+- Why: `bootstrap.min.css.map` was a dead asset (build strips sourcemap references and doesn't ship it); removing it reduces repo noise and makes searches faster.
+- Evidence: `npm run lint`, `npm test`, `npm run build`, `npm run check:build` pass locally.
+- Implementation: delete `src/css/bootstrap.min.css.map`, remove the `sourceMappingURL` comment from `src/css/bootstrap.min.css`, and avoid redundant copying in `build.mjs`.
+- Commit: `2d789b3`
+- Confidence: High
+- Trust label: Local
+
 ### Mistakes And Fixes: Stop-cancel left a stale “user cancel” flag on port mismatch
 - Root cause: the Stop handler nulled `port` before `onDisconnect` ran, so the handler returned early and didn’t clear the cancel flag.
 - Fix: let `onDisconnect` own clearing (don’t null `port` in the Stop handler).
