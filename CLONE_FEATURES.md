@@ -7,12 +7,15 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P2: Improve OpenAI API error UX (surface common causes like invalid model / insufficient quota with safe, non-leaky messaging).
-- [ ] P2: Add “Stop generating” (cancel stream) in the result card footer.
+- [ ] P1 (Selected): Add “Stop generating” (cancel stream) in the result card footer; keep partial output visible and allow regenerate without reloading the page.
+- [ ] P1 (Selected): Don’t clear cached ChatGPT access token on user-initiated cancel/abort (avoid forcing re-login after hitting Stop).
+- [ ] P2 (Selected): Improve OpenAI API error UX (detect invalid model vs quota/billing vs rate-limit with safe, non-leaky messaging) and add unit tests for the classifier.
+- [ ] P3 (Selected): Reduce background SSE overhead (reuse `TextDecoder`; preserve existing behavior) and make HTTP error parsing resilient (`HTTP_400:...`).
 - [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
 - [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
 - [ ] P3: Add a per-entry “Copy link + answer” share bundle for local support/debugging (no server upload).
+- [ ] P3: Add an Escape-key shortcut to stop generation when the GPTx follow-up input is not focused.
 
 ## Implemented
 - [x] 2026-02-09: Throttle streaming markdown renders to reduce UI jank; update “Copy” to copy rendered plaintext and add “Copy Markdown” to copy the raw markdown answer.
