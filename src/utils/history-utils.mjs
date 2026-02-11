@@ -8,6 +8,9 @@ export const DEFAULT_HISTORY_IGNORE_KEYS = new Set([
   'gptxSecuritySettings',
   'gptxSecurityReports',
   'gptxSecurityEvents',
+  'gptxAnswerReports',
+  'gptxOpenAIApiKey',
+  'gptxOpenAIModel',
 ])
 
 export const DEFAULT_HISTORY_RETENTION = {
@@ -18,7 +21,12 @@ export const DEFAULT_HISTORY_RETENTION = {
 }
 
 export function buildCacheKey(question, preferences) {
-  return `gptx:${question}::${preferences.mode}::${preferences.format}`
+  const mode = preferences?.mode || 'summary'
+  const format = preferences?.format || 'bullets'
+  const citations = preferences?.citations === 'on' ? 'on' : 'off'
+  const baseKey = `gptx:${question}::${mode}::${format}`
+  // Keep backward compatibility with older cache keys when citations mode is off.
+  return citations === 'on' ? `${baseKey}::citations-on` : baseKey
 }
 
 export function normalizeEntry(key, value) {
@@ -38,6 +46,7 @@ export function normalizeEntry(key, value) {
       answer: value.answer,
       mode: value.mode,
       format: value.format,
+      citations: value.citations,
       createdAt: value.createdAt,
     }
   }
@@ -56,6 +65,9 @@ export function formatEntryMeta(entry) {
   }
   if (entry.format && entry.format !== 'legacy') {
     parts.push(capitalize(entry.format))
+  }
+  if (entry.citations === 'on') {
+    parts.push('Citations')
   }
   if (entry.createdAt) {
     parts.push(new Date(entry.createdAt).toLocaleString())

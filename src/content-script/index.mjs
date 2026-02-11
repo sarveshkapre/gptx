@@ -27,6 +27,7 @@ import Browser from 'webextension-polyfill'
 const DEFAULT_PREFERENCES = {
   mode: 'summary',
   format: 'bullets',
+  citations: 'off',
 }
 
 const DEFAULT_SECURITY_SETTINGS = {
@@ -74,6 +75,18 @@ const FORMAT_CONFIG = {
   table: {
     label: 'Table',
     instruction: 'Use a table when helpful; otherwise use bullets.',
+  },
+}
+
+const CITATION_CONFIG = {
+  off: {
+    label: 'Off',
+    instruction: '',
+  },
+  on: {
+    label: 'On',
+    instruction:
+      'When making factual claims, include a final "Sources" section with markdown links from the provided search sources.',
   },
 }
 
@@ -166,14 +179,24 @@ async function saveSecurityAllowlist(allowlist) {
   })
 }
 
-function buildPrompt({ question, preferences, followUp, priorAnswer }) {
+function buildPrompt({ question, preferences, followUp, priorAnswer, sources = [] }) {
   const modeInstruction = MODE_CONFIG[preferences.mode]?.instruction || ''
   const formatInstruction = FORMAT_CONFIG[preferences.format]?.instruction || ''
+  const citationsInstruction = CITATION_CONFIG[preferences.citations]?.instruction || ''
+  const sourceBlock =
+    preferences.citations === 'on' && sources.length
+      ? `
+Search sources (use only these URLs in citations):
+${sources.map((source, index) => `${index + 1}. ${source.title} - ${source.url}`).join('\n')}
+      `.trim()
+      : ''
   if (followUp) {
     return `
 You are a helpful research assistant.
 ${modeInstruction}
 ${formatInstruction}
+${citationsInstruction}
+${sourceBlock}
 
 Original question: ${question}
 Previous answer: ${priorAnswer || 'N/A'}
@@ -184,6 +207,8 @@ Follow-up: ${followUp}
 You are a helpful research assistant.
 ${modeInstruction}
 ${formatInstruction}
+${citationsInstruction}
+${sourceBlock}
 
 Question: ${question}
   `.trim()
@@ -222,6 +247,29 @@ function getSearchResultLinks() {
     }
   })
   return links
+}
+
+function normalizePromptSourceText(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .replace(/[\r\n\t]/g, ' ')
+    .trim()
+}
+
+function buildPromptSources(resultLinks, maxItems = 8) {
+  const seen = new Set()
+  return resultLinks
+    .map((item) => {
+      const title = normalizePromptSourceText(item.heading?.textContent || item.hostname || 'Source')
+      const url = normalizePromptSourceText(item.url)
+      return { title, url }
+    })
+    .filter((item) => {
+      if (!item.url || seen.has(item.url)) return false
+      seen.add(item.url)
+      return true
+    })
+    .slice(0, maxItems)
 }
 
 function hideGoogleAds() {
@@ -343,6 +391,7 @@ async function run(baseQuestion) {
   const gptxSecurityBannerElem = document.getElementById('gptx-security-banner')
   const gptxFooterRefreshBtn = document.getElementById('gptx-footer-refresh-btn')
   const gptxFooterStopBtn = document.getElementById('gptx-footer-stop-btn')
+  const gptxFooterClearCacheBtn = document.getElementById('gptx-footer-clear-cache-btn')
   const gptxFooterCopyBtn = document.getElementById('gptx-footer-copy-btn')
   const gptxFooterCopyMdBtn = document.getElementById('gptx-footer-copy-md-btn')
   const gptxFooterNewTabBtn = document.getElementById('gptx-footer-new-tab-btn')
@@ -352,11 +401,14 @@ async function run(baseQuestion) {
   const securityCenterUrl = Browser.runtime.getURL('security-center.html')
 
   let preferences = await loadPreferences()
+  preferences.citations = preferences.citations === 'on' ? 'on' : 'off'
   let securitySettings = await loadSecuritySettings()
   const { enabled: securityEnabled, allowlist, blocklist, settings } = securitySettings
   let activeRequest = null
   let previousResponse = ''
   const riskMap = new WeakMap()
+  const searchResultLinks = getSearchResultLinks()
+  const promptSources = buildPromptSources(searchResultLinks)
   let isGenerating = false
 
   let port = null
@@ -380,12 +432,14 @@ async function run(baseQuestion) {
   function setButtonsDisabled(disabled) {
     if (disabled) {
       gptxFooterRefreshBtn.classList.add('gptx-disable-btn')
+      if (gptxFooterClearCacheBtn) gptxFooterClearCacheBtn.classList.add('gptx-disable-btn')
       gptxFooterCopyBtn.classList.add('gptx-disable-btn')
       if (gptxFooterCopyMdBtn) gptxFooterCopyMdBtn.classList.add('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.add('gptx-disable-btn')
       if (gptxFooterReportBtn) gptxFooterReportBtn.classList.add('gptx-disable-btn')
     } else {
       gptxFooterRefreshBtn.classList.remove('gptx-disable-btn')
+      if (gptxFooterClearCacheBtn) gptxFooterClearCacheBtn.classList.remove('gptx-disable-btn')
       gptxFooterCopyBtn.classList.remove('gptx-disable-btn')
       if (gptxFooterCopyMdBtn) gptxFooterCopyMdBtn.classList.remove('gptx-disable-btn')
       gptxFooterNewTabBtn.classList.remove('gptx-disable-btn')
@@ -462,6 +516,9 @@ async function run(baseQuestion) {
     document.querySelectorAll('[data-gptx-format]').forEach((button) => {
       button.classList.toggle('is-active', button.dataset.gptxFormat === preferences.format)
     })
+    document.querySelectorAll('[data-gptx-citations]').forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.gptxCitations === preferences.citations)
+    })
   }
 
   function resetPort() {
@@ -491,6 +548,7 @@ async function run(baseQuestion) {
               answer: previousResponse,
               mode: activeRequest.preferences.mode,
               format: activeRequest.preferences.format,
+              citations: activeRequest.preferences.citations,
               createdAt: Date.now(),
             })
           }
@@ -661,6 +719,7 @@ async function run(baseQuestion) {
         answer: legacyEntry.answer,
         mode: preferences.mode,
         format: preferences.format,
+        citations: preferences.citations,
         createdAt: legacyEntry.createdAt || Date.now(),
       })
       return
@@ -710,7 +769,7 @@ async function run(baseQuestion) {
         preferences.mode = button.dataset.gptxMode
         await savePreferences(preferences)
         applyPreferencesToUI()
-        const prompt = buildPrompt({ question: baseQuestion, preferences })
+        const prompt = buildPrompt({ question: baseQuestion, preferences, sources: promptSources })
         const cacheKey = buildCacheKey(baseQuestion, preferences)
         await loadFromCacheOrRequest({
           prompt,
@@ -725,7 +784,22 @@ async function run(baseQuestion) {
         preferences.format = button.dataset.gptxFormat
         await savePreferences(preferences)
         applyPreferencesToUI()
-        const prompt = buildPrompt({ question: baseQuestion, preferences })
+        const prompt = buildPrompt({ question: baseQuestion, preferences, sources: promptSources })
+        const cacheKey = buildCacheKey(baseQuestion, preferences)
+        await loadFromCacheOrRequest({
+          prompt,
+          displayQuestion: baseQuestion,
+          cacheKey,
+        })
+      })
+    })
+    document.querySelectorAll('[data-gptx-citations]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        if (preferences.citations === button.dataset.gptxCitations) return
+        preferences.citations = button.dataset.gptxCitations === 'on' ? 'on' : 'off'
+        await savePreferences(preferences)
+        applyPreferencesToUI()
+        const prompt = buildPrompt({ question: baseQuestion, preferences, sources: promptSources })
         const cacheKey = buildCacheKey(baseQuestion, preferences)
         await loadFromCacheOrRequest({
           prompt,
@@ -745,6 +819,7 @@ async function run(baseQuestion) {
       preferences,
       followUp,
       priorAnswer: previousResponse,
+      sources: promptSources,
     })
     const cacheKey = buildCacheKey(displayQuestion, preferences)
     await requestAnswer({ prompt, displayQuestion, cacheKey })
@@ -759,6 +834,33 @@ async function run(baseQuestion) {
       cacheKey: activeRequest.cacheKey,
     })
   })
+
+  async function clearActiveCacheEntry() {
+    const keys = []
+    if (activeRequest?.cacheKey) keys.push(activeRequest.cacheKey)
+    // Legacy cache format used the display question as a storage key.
+    if (activeRequest?.displayQuestion) keys.push(activeRequest.displayQuestion)
+    const uniqueKeys = Array.from(new Set(keys))
+    if (!uniqueKeys.length) return false
+    await Browser.storage.local.remove(uniqueKeys)
+    setStatus('Cache cleared for this query')
+    return true
+  }
+
+  if (gptxFooterClearCacheBtn) {
+    gptxFooterClearCacheBtn.addEventListener('click', async () => {
+      const cleared = await clearActiveCacheEntry()
+      if (!cleared) return
+      const tooltip = gptxFooterClearCacheBtn.querySelector('.gptx-tooltip-text')
+      if (tooltip) {
+        const original = tooltip.textContent
+        tooltip.textContent = 'Cleared'
+        setTimeout(() => {
+          tooltip.textContent = original || 'Clear cache'
+        }, 900)
+      }
+    })
+  }
 
   function stopGenerating() {
     if (!isGenerating) return false
@@ -894,7 +996,7 @@ async function run(baseQuestion) {
     if (settings.hideAds) {
       hideGoogleAds()
     }
-    const results = getSearchResultLinks()
+    const results = searchResultLinks
     let riskyCount = 0
     let sensitiveCount = 0
     let trackingCount = 0
@@ -1143,7 +1245,7 @@ async function run(baseQuestion) {
     setSecurityBanner('Security alerts are paused.', 'info')
   }
 
-  const initialPrompt = buildPrompt({ question: baseQuestion, preferences })
+  const initialPrompt = buildPrompt({ question: baseQuestion, preferences, sources: promptSources })
   const initialCacheKey = buildCacheKey(baseQuestion, preferences)
   await loadFromCacheOrRequest({
     prompt: initialPrompt,

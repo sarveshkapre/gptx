@@ -31,6 +31,13 @@ export function getStopIconSvg(width = '1em', height = '1em', color = 'red') {
   </svg>
   `
 }
+export function getClearCacheIconSvg(width = '1em', height = '1em', color = 'red') {
+  return `
+  <svg id="clear-cache-icon-svg" width=${width} height=${height} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 7h8M10 11v6M14 11v6M5 7h14M7 7l1 12h8l1-12M9 7V5h6v2" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  `
+}
 export function getNewTabIconSvg(width = '1em', height = '1em', color = 'red') {
   return `
   <svg id="new-tab-svg" width=${width} height=${height} fill="${color}" viewBox="0 0 44 44"  xmlns="http://www.w3.org/2000/svg">
@@ -90,6 +97,13 @@ export function getResultCardTemplate(iconColor) {
           <button class="gptx-chip" data-gptx-format="table">Table</button>
         </div>
       </div>
+      <div class="gptx-control-group">
+        <span class="gptx-control-label">Citations</span>
+        <div class="gptx-chip-group" role="group" aria-label="Citations mode">
+          <button class="gptx-chip" data-gptx-citations="off">Off</button>
+          <button class="gptx-chip" data-gptx-citations="on">On</button>
+        </div>
+      </div>
     </div>
     <div id="gptx-security-banner" class="gptx-security-banner"></div>
   </div>
@@ -125,6 +139,10 @@ export function getResultCardTemplate(iconColor) {
     <div class="btn gptx-footer-btns is-hidden" id="gptx-footer-stop-btn">
       ${getStopIconSvg('1.2em', '1.2em', iconColor)}
       <span class="gptx-tooltip-text">Stop</span>
+    </div>
+    <div class="btn gptx-footer-btns" id="gptx-footer-clear-cache-btn">
+      ${getClearCacheIconSvg('1.2em', '1.2em', iconColor)}
+      <span class="gptx-tooltip-text">Clear cache</span>
     </div>
     <div class="btn gptx-footer-btns" id="gptx-footer-refresh-btn">
       ${getRefreshIconSvg('1.2em', '1.2em', iconColor)}

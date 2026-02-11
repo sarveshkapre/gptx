@@ -40,8 +40,10 @@ To leverage the power of the ChatGPT language model to provide users with a more
     ✅ Clear GPTx answer history (all or selected) without resetting extension/security settings
     ✅ Easily Copy entire thread or Copy all answers on ChatGPT official website
     ✅ Answer modes (Summary / Balanced / Deep) and formats (Bullets / Steps / Table)
+    ✅ Optional citations mode with source-linked answers
     ✅ Follow-up questions with keyboard shortcuts
     ✅ Stop generating with the Stop button (or Escape when not typing)
+    ✅ Clear cached answer for the current query without wiping history/settings
     ✅ Security badges on Google results (phishing / sensitive / tracking / HTTP)
     ✅ Tracking-parameter stripping and HTTPS upgrade on click
     ✅ Security Center with allowlist, blocklist, reports, and alert history

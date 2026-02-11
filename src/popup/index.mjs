@@ -7,6 +7,7 @@ main()
 const DEFAULT_PREFERENCES = {
   mode: 'summary',
   format: 'bullets',
+  citations: 'off',
 }
 
 const DEFAULT_OPENAI_SETTINGS = {
@@ -167,8 +168,10 @@ async function main() {
   const preferences = await loadPreferences()
   const modeSelect = document.getElementById('gptx-default-mode')
   const formatSelect = document.getElementById('gptx-default-format')
+  const citationsSelect = document.getElementById('gptx-default-citations')
   modeSelect.value = preferences.mode
   formatSelect.value = preferences.format
+  if (citationsSelect) citationsSelect.value = preferences.citations || 'off'
 
   modeSelect.addEventListener('change', async () => {
     preferences.mode = modeSelect.value
@@ -179,6 +182,13 @@ async function main() {
     preferences.format = formatSelect.value
     await savePreferences(preferences)
   })
+
+  if (citationsSelect) {
+    citationsSelect.addEventListener('change', async () => {
+      preferences.citations = citationsSelect.value === 'on' ? 'on' : 'off'
+      await savePreferences(preferences)
+    })
+  }
 
   const retention = await loadHistoryRetention()
   const ttlInput = document.getElementById('gptx-history-ttl-days')

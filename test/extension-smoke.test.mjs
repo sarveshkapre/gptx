@@ -42,6 +42,7 @@ test(
       // The checkbox input is intentionally visually hidden; assert it exists instead of "visible".
       await page.waitForSelector('#gptx-enable-extension-switch', { state: 'attached' })
       await page.waitForSelector('#gptx-default-mode', { state: 'attached' })
+      await page.waitForSelector('#gptx-default-citations', { state: 'attached' })
       await page.waitForSelector('#gptx-open-security-center', { state: 'visible' })
 
       await page.goto(`chrome-extension://${extensionId}/view-history.html`)

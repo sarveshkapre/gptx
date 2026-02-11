@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   buildCacheKey,
+  formatEntryMeta,
   getHistoryKeysToPrune,
   getHistoryKeys,
   getRenderableEntries,
@@ -23,8 +24,21 @@ import {
 } from '../src/utils/openai-error-utils.mjs'
 
 test('buildCacheKey uses question, mode, and format', () => {
-  const key = buildCacheKey('best running shoes', { mode: 'summary', format: 'bullets' })
+  const key = buildCacheKey('best running shoes', {
+    mode: 'summary',
+    format: 'bullets',
+    citations: 'off',
+  })
   assert.equal(key, 'gptx:best running shoes::summary::bullets')
+})
+
+test('buildCacheKey adds citations suffix when citations mode is on', () => {
+  const key = buildCacheKey('best running shoes', {
+    mode: 'summary',
+    format: 'bullets',
+    citations: 'on',
+  })
+  assert.equal(key, 'gptx:best running shoes::summary::bullets::citations-on')
 })
 
 test('normalizeEntry handles legacy and modern history entries', () => {
@@ -37,17 +51,32 @@ test('normalizeEntry handles legacy and modern history entries', () => {
     answer: 'modern answer',
     mode: 'deep',
     format: 'table',
+    citations: 'on',
     createdAt: 1700000000000,
   })
   assert.equal(modern.question, 'custom question')
   assert.equal(modern.mode, 'deep')
   assert.equal(modern.format, 'table')
+  assert.equal(modern.citations, 'on')
+})
+
+test('formatEntryMeta shows citations marker when enabled', () => {
+  const meta = formatEntryMeta({
+    mode: 'summary',
+    format: 'bullets',
+    citations: 'on',
+    createdAt: 1700000000000,
+  })
+  assert.equal(meta.includes('Citations'), true)
 })
 
 test('getRenderableEntries/getHistoryKeys ignore settings keys and sort newest first', () => {
   const data = {
     gptxExtensionEnabled: true,
     gptxHistoryRetention: { ttlDays: 0, maxEntries: 0 },
+    gptxOpenAIApiKey: 'sk-secret-value',
+    gptxOpenAIModel: 'gpt-4.1',
+    gptxAnswerReports: [{ id: '1', answer: 'x' }],
     'gptx:a::summary::bullets': {
       question: 'a',
       answer: 'A',
