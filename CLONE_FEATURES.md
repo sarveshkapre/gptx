@@ -7,12 +7,29 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] P2: Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
-- [ ] P3: Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
-- [ ] P3: Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
-- [ ] P3: Add a per-entry “Copy link + answer” share bundle for local support/debugging (no server upload).
+- [ ] P1: Add CI failure triage note/guardrail for transient GitHub checkout 5xx errors and rerun policy (`score I/E/S/D/R/C: 3/1/4/2/1/5`).
+- [ ] P2: Add per-site enable/disable toggle (Google-only default) with a small supported engine allowlist (`score I/E/S/D/R/C: 4/3/4/3/2/4`).
+- [ ] P2: Add per-entry “Copy link + answer” share bundle for local support/debugging (no upload) (`score I/E/S/D/R/C: 3/2/4/3/2/4`).
+- [ ] P2: Add keyboard shortcut (`Shift+R`) for “Regenerate” when answer card is focused (`score I/E/S/D/R/C: 2/1/3/1/1/5`).
+- [ ] P2: Add source-domain badges for generated answers when citations mode is on (`score I/E/S/D/R/C: 3/2/4/4/2/3`).
+- [ ] P2: Add privacy-safe truncation policy for stored answer reports/history size caps (`score I/E/S/D/R/C: 4/2/5/2/2/4`).
+- [ ] P2: Add structured telemetry-free debug snapshot export (settings + latest cache metadata only) (`score I/E/S/D/R/C: 3/2/4/3/2/4`).
+- [ ] P3: Add stale-cache age indicator in card/history metadata (`score I/E/S/D/R/C: 2/1/3/2/1/5`).
+- [ ] P3: Add “retry with fallback mode” CTA when OpenAI API fails (`score I/E/S/D/R/C: 3/2/4/2/2/4`).
+- [ ] P3: Refactor duplicated storage bootstrapping into shared utilities (`score I/E/S/D/R/C: 3/2/4/1/1/4`).
+- [ ] P3: Add smoke test asserting follow-up keyboard shortcuts (`/`, `Enter`, `Escape`) (`score I/E/S/D/R/C: 2/2/3/1/1/4`).
+- [ ] P3: Add optional warning when a query appears sensitive before generation (`score I/E/S/D/R/C: 2/2/3/3/2/3`).
+- [ ] P3: Improve popup layout token consistency and fix duplicated CSS variable declaration (`score I/E/S/D/R/C: 2/1/3/1/1/5`).
+- [ ] P3: Add docs split so README stays short and links deep guides under `docs/` (`score I/E/S/D/R/C: 2/2/4/1/1/4`).
+- [ ] P3: Add automated check ensuring ignored storage keys are documented in one source of truth (`score I/E/S/D/R/C: 2/2/3/1/1/4`).
 
 ## Implemented
+- [x] 2026-02-11: Add optional citations mode (popup default + in-card toggle) with source-aware prompt constraints and citation-friendly markdown output.
+  Evidence: `src/popup/index.html`, `src/popup/index.mjs`, `src/constants/template-strings.mjs`, `src/content-script/index.mjs`, `src/utils/history-utils.mjs`, `test/utils.test.mjs`, `test/extension-smoke.test.mjs`, `npm ci`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`, `GPTX_E2E=1 npm run test:e2e`
+- [x] 2026-02-11: Add “Clear cache for this query” footer control to delete only the active query cache key(s) without touching global settings/history.
+  Evidence: `src/constants/template-strings.mjs`, `src/content-script/index.mjs`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`
+- [x] 2026-02-11: Fix sensitive-data leak risk by excluding OpenAI keys/model and answer-report storage keys from history rendering/export.
+  Evidence: `src/utils/history-utils.mjs`, `test/utils.test.mjs`, `npm run lint`, `npm test`
 - [x] 2026-02-10: Add an Escape-key shortcut to stop generation when the user is not typing (follow-up input not focused).
   Evidence: `src/content-script/index.mjs`, `npm run lint`, `npm test`, `npm run build`, `npm run check:build`
 - [x] 2026-02-10: Add “Stop generating” to cancel streaming answers without forcing page reload; avoid clearing the cached ChatGPT access token on user-initiated abort.
@@ -69,6 +86,12 @@
   Evidence: `README.md`
 
 ## Insights
+- CI signal review (2026-02-11): failed runs `21833444591`, `21833240265`, and `21833232432` all failed in `actions/checkout` with transient GitHub HTTP `500/502` during `git fetch`; no project-code regression was executed in those jobs.
+- Market scan (bounded, Feb 2026): leading extensions emphasize source-grounded answers and citation workflows as trust features; GPTx citations mode closes a clear parity gap while keeping default UX simple.
+  Sources (untrusted): https://chromewebstore.google.com/detail/chatgpt-sources-citations/acobdliolhcfmmiconpdpipcpjdnphci, https://sider.ai/en/extensions/side-panel
+- Market scan (bounded, Feb 2026): mainstream assistants position around multi-engine support and in-page actions (summarize/rewrite/chat), so per-site support controls remain a meaningful near-term backlog item.
+  Sources (untrusted): https://chromewebstore.google.com/detail/sider-chatgpt-sidebar-gpt/difoiogjjojoaoomphldepapgpbgkhkb, https://www.gptforchrome.com/, https://www.harpa.ai/
+- Code sweep finding: history/export logic must maintain an explicit ignore list for non-history storage keys (including secrets) to avoid data-leak regressions.
 - Legacy root-level `content-script.js` was stale and has been removed; build outputs should remain under `build/chromium/`.
 - ChatGPT session auth is sensitive to cookie context; `credentials: 'include'` is required for extension fetches that depend on logged-in ChatGPT web sessions.
 - History/settings were stored in one local-storage namespace; explicit key filtering is required for safe "clear history" UX.

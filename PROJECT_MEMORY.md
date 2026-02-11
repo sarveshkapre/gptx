@@ -130,9 +130,9 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm run test:e2e` (pass)
 
 ## Follow-ups
-- Add optional “Citations” mode (user can ask for sources; render as links) while keeping defaults simple.
 - Add per-site enable/disable toggle (Google-only by default) with a small allowlist of supported search engines.
-- Add a “Clear cache for this query” control (delete cached answer entry only) without touching global settings or all-history.
+- Add source-domain badges and stronger anti-fabrication checks when citations mode is enabled.
+- Add CI rerun playbook for transient `actions/checkout` 5xx outages.
 
 ## 2026-02-10
 
@@ -181,3 +181,28 @@ This file captures decisions, evidence, and follow-ups from maintenance cycles.
 - `npm run test:e2e` (pass)
 - `npm run build` (pass)
 - `npm run check:build` (pass)
+
+## 2026-02-11
+
+### Recent Decisions
+- Date: 2026-02-11 | Decision: ship optional citations mode (popup default + in-card toggle + source-aware prompts) | Why: trust/PMF gap versus citation-forward competitors while keeping default UX simple | Evidence: local lint/test/build/e2e passes; files `src/popup/index.html`, `src/popup/index.mjs`, `src/constants/template-strings.mjs`, `src/content-script/index.mjs` | Commit: `66ca85e` | Confidence: High | Trust label: trusted
+- Date: 2026-02-11 | Decision: add “Clear cache for this query” action on the result card | Why: stale-answer recovery without destructive “clear all history” actions | Evidence: local checks pass; files `src/constants/template-strings.mjs`, `src/content-script/index.mjs` | Commit: `66ca85e` | Confidence: High | Trust label: trusted
+- Date: 2026-02-11 | Decision: exclude non-history storage keys (`gptxOpenAIApiKey`, `gptxOpenAIModel`, `gptxAnswerReports`) from history rendering/export | Why: prevent accidental secret/data leakage in history UI/exports | Evidence: tests updated in `test/utils.test.mjs`; checks pass | Commit: `66ca85e` | Confidence: High | Trust label: trusted
+- Date: 2026-02-11 | Decision: classify CI failures `21833444591`, `21833240265`, `21833232432` as external GitHub checkout outages (HTTP 500/502 in `actions/checkout`) | Why: failures occurred before project steps executed, so no repo-code remediation was warranted | Evidence: `gh run view <id> --log-failed` snippets show repeated `fatal: unable to access ... 500/502` during fetch | Commit: N/A | Confidence: High | Trust label: trusted
+- Date: 2026-02-11 | Decision: bounded market scan confirms citation/source workflows are baseline expectations in this segment | Why: used to prioritize citations work over lower-impact backlog items | Evidence: source links: `https://chromewebstore.google.com/detail/chatgpt-sources-citations/acobdliolhcfmmiconpdpipcpjdnphci`, `https://sider.ai/en/extensions/side-panel`, `https://www.harpa.ai/`, `https://www.gptforchrome.com/` | Commit: N/A | Confidence: Medium | Trust label: untrusted
+
+### Mistakes And Fixes
+- Root cause: history ignored-key list was missing OpenAI/settings/report keys, so secret/config keys were eligible for rendering/export as “history” entries.
+- Fix: expanded `DEFAULT_HISTORY_IGNORE_KEYS` and added test coverage for those keys.
+- Prevention rule: any new `storage.local` key must be classified as history/non-history and covered by `DEFAULT_HISTORY_IGNORE_KEYS` tests before merge.
+- Commit: `66ca85e`
+- Trust label: trusted
+
+### Verification Evidence
+- `npm ci` (pass, 0 vulnerabilities)
+- `npm run lint` (pass)
+- `npm test` (pass)
+- `npm run build` (pass)
+- `npm run check:build` (pass)
+- `GPTX_E2E=1 npm run test:e2e` (pass)
+- `gh run watch 21898069309 --repo sarveshkapre/gptx` (pass, CI green for commit `66ca85e`)
