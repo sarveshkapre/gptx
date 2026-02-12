@@ -22,3 +22,14 @@ This file tracks notable failures/regressions, root causes, and prevention rules
 - Prevention: require test coverage whenever introducing new `storage.local` keys; classify them as history vs non-history in the same change.
 - Evidence (commands/logs/tests): `npm run lint`, `npm test` (including updated history filter tests), `npm run build`, `npm run check:build`, `GPTX_E2E=1 npm run test:e2e`.
 - Related commits/refs: `66ca85e`
+
+### 2026-02-12T20:00:59Z | Codex execution failure
+- Date: 2026-02-12T20:00:59Z
+- Trigger: Codex execution failure
+- Impact: Repo session did not complete cleanly
+- Root Cause: codex exec returned a non-zero status
+- Fix: Captured failure logs and kept repository in a recoverable state
+- Prevention Rule: Re-run with same pass context and inspect pass log before retrying
+- Evidence: pass_log=logs/20260212-101456-gptx-cycle-2.log
+- Commit: pending
+- Confidence: medium
