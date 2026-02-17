@@ -61,6 +61,14 @@ https://chrome.google.com/webstore/detail/gptx/ljmohcbobmmelbiijhpigdmmoboabjcl
 3. Run quality checks using `npm run lint && npm test`
 4. Build extension using `npm run build`
 
+### CI on Self-Hosted Runner
+
+This repository's GitHub Actions CI is configured to run on a self-hosted runner.
+
+- Setup and registration guide: `docs/self-hosted-runner.md`
+- Workflow supports Linux and macOS self-hosted runners.
+- Linux runners must provide `xvfb-run` for Playwright E2E smoke tests.
+
 For installing in Google Chrome
 
 1. Open Google Chrome and go to the extensions page (chrome://extensions/)
